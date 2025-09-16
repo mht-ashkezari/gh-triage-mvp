@@ -1,0 +1,90 @@
+# --- OS junk / editors ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.orig
+.idea/
+.vscode/
+!.vscode/extensions.json
+.history/
+
+# --- Node/TypeScript monorepo (apps, packages) ---
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+.turbo/
+apps/**/dist/
+packages/**/dist/
+apps/**/coverage/
+packages/**/coverage/
+apps/**/.next/
+apps/**/.nuxt/
+apps/**/.vercel/
+apps/**/out/
+
+# --- General build artifacts ---
+dist/
+build/
+coverage/
+*.log
+
+# --- Env & secrets (keep only .env.example tracked) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*private_key*
+id_rsa*
+id_ed25519*
+*.p12
+*.pfx
+*.keystore
+
+# --- Python / Analytics (DuckDB, dbt, GE, tests) ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+analytics/analytics.duckdb
+analytics/dbt/target/
+analytics/dbt/logs/
+analytics/great_expectations/uncommitted/
+analytics/data/artifacts/
+analytics/**/.ipynb_checkpoints/
+
+# Bronze/sample data (ignore heavy data, keep tiny manifests/docs)
+analytics/data/bronze/
+data/**
+!data/**/manifest.yaml
+!data/**/SHA256SUMS
+!data/**/README.md
+
+# --- Infra: Terraform / Helm / k8s scratch ---
+infra/**/.terraform/
+infra/**/*.tfstate
+infra/**/*.tfstate.*
+infra/**/crash.log
+infra/**/crash.*.log
+*.tfplan
+**/*.tgz
+
+# --- Package managers (lockfiles are tracked; don’t ignore) ---
+# (Intentionally NOT ignoring package-lock.json / yarn.lock / pnpm-lock.yaml)
+
+# --- Misc tooling caches ---
+*.coverage
+.nyc_output/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# --- SBOM / scanners / reports (keep if you want them tracked) ---
+/reports/
+
+# 
