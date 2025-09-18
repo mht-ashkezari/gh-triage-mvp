@@ -1,0 +1,104 @@
+{
+  "$ref": "#/definitions/TriageCardV1",
+  "definitions": {
+    "TriageCardV1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "integer"
+        },
+        "suggestions": {
+          "type": "object",
+          "properties": {
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": [
+                  "name",
+                  "score"
+                ],
+                "additionalProperties": false
+              },
+              "default": []
+            },
+            "priority": {
+              "$ref": "#/definitions/TriageCardV1/properties/suggestions/properties/labels/items/properties/score"
+            },
+            "assignees": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "login": {
+                    "type": "string"
+                  },
+                  "score": {
+                    "$ref": "#/definitions/TriageCardV1/properties/suggestions/properties/labels/items/properties/score"
+                  }
+                },
+                "required": [
+                  "login",
+                  "score"
+                ],
+                "additionalProperties": false
+              },
+              "default": []
+            },
+            "dup_candidates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "number": {
+                    "type": "integer"
+                  },
+                  "score": {
+                    "$ref": "#/definitions/TriageCardV1/properties/suggestions/properties/labels/items/properties/score"
+                  }
+                },
+                "required": [
+                  "number",
+                  "score"
+                ],
+                "additionalProperties": false
+              },
+              "default": []
+            }
+          },
+          "additionalProperties": false
+        },
+        "rationale": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "required": [
+        "issue_id",
+        "suggestions"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,48 @@
+{
+  "$ref": "#/definitions/CriticalFactsV1",
+  "definitions": {
+    "CriticalFactsV1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "integer"
+        },
+        "template": {
+          "type": "string",
+          "enum": [
+            "bug",
+            "feature",
+            "question",
+            "other"
+          ]
+        },
+        "has_repro": {
+          "type": "boolean"
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "body_sha": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "issue_id",
+        "body_sha",
+        "created_at"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
