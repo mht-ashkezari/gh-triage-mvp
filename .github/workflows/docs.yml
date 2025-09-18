@@ -3,7 +3,7 @@ name: Docs
 on:
   push:
     branches: [ main ]
-    # Do not run if the ONLY change is the lockfile
+    # Skip if the ONLY change is the lockfile
     paths-ignore:
       - 'pnpm-lock.yaml'
   workflow_dispatch:
@@ -15,6 +15,7 @@ jobs:
   build-docs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,11 +26,13 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
 
-      # Do NOT pass "version:" here — it will read from package.json: "packageManager": "pnpm@9.12.0"
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v4
+      - name: Enable Corepack and activate pnpm from package.json
+        run: |
+          corepack enable
+          # Enforce the exact version in package.json: "packageManager": "pnpm@9.12.0"
+          corepack prepare pnpm@$(jq -r '.packageManager | split("@")[1]' package.json) --activate
 
-      - name: Install dependencies (incl. devDeps)
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
         env:
           NODE_ENV: development
