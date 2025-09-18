@@ -87,4 +87,8 @@ infra/**/crash.*.log
 # --- SBOM / scanners / reports (keep if you want them tracked) ---
 /reports/
 
+# --- Docs (if you generate docs, ignore the output) ---
+docs/api/
 # 
+/scripts    
+/_snapshots                
