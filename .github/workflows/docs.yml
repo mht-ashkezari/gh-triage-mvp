@@ -36,7 +36,9 @@ jobs:
         run: pnpm install --frozen-lockfile
         env:
           NODE_ENV: development
-
+      
+      - name: Build workspace (tsc)
+        run: pnpm -r build --if-present
       - name: Build API docs (OpenAPI + TypeDoc)
         run: pnpm docs:api
 
