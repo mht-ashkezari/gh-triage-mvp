@@ -10,11 +10,11 @@
     ],
     "compilerOptions": {
         "composite": true,
-        "skipLibCheck": true
-    },
-    "paths": {
-        "@ghtriage/schemas/*": [
-            "packages/schemas/src/*"
-        ]
+        "skipLibCheck": true,
+        "paths": {
+            "@ghtriage/schemas/*": [
+                "packages/schemas/src/*"
+            ]
+        }
     }
 }

@@ -1,14 +1,14 @@
 {
-    "extends": "../../tsconfig.base.json",
-    "compilerOptions": {
-        "composite": true,
-        "declaration": true,
-        "rootDir": "src",
-        "outDir": "dist",
-        "baseUrl": "."
+    "name": "@ghtriage/schemas",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -p tsconfig.json"
     },
-    "include": [
-        "src/**/*.ts"
-    ],
-    "type": "module"
+    "dependencies": {
+        "zod": "^3.25.0"
+    }
 }
