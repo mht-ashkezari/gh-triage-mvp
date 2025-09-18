@@ -1,56 +1,52 @@
 name: Docs
+
 on:
   push:
     branches: [main]
-    paths:
-      - "packages/**"
-      - "docs/openapi/**"
-      - "typedoc.json"
-      - "package.json"
+    # Do not run if the ONLY change is the lockfile
+    paths-ignore:
       - "pnpm-lock.yaml"
-  pull_request:
-    branches: [main]
+  # allow manual runs if needed
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build-docs:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write # needed for uploading artifacts
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Use Node 20 (cache pnpm)
         uses: actions/setup-node@v4
-        with: { node-version: "20" }
+        with:
+          node-version: "20"
+          cache: "pnpm"
 
-      - name: Install
-        run: pnpm i --frozen-lockfile
+      - name: Install dependencies (incl. devDeps)
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_ENV: development
 
-      - name: Generate OpenAPI & TypeDoc & Redoc
+      - name: Build API docs (OpenAPI + TypeDoc)
         run: pnpm docs:api
 
-      # Optional: JSON Schema -> HTML (human-friendly)
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - name: Install json-schema-for-humans
-        run: pip install json-schema-for-humans
-      - name: Render JSON Schema docs
-        run: |
-          mkdir -p docs/api/jsonschema
-          for f in docs/jsonschema/*.schema.json; do
-            [ -f "$f" ] || continue
-            out="docs/api/jsonschema/$(basename "${f%.schema.json}").html"
-            generate-schema-doc --link-to-schema --expand-buttons --minify --config show_breadcrumbs=true "$f" "$out"
-          done
-
-      - name: Zip site
+      - name: Zip site docs
         run: pnpm docs:zip
 
-      - name: Upload docs artifact
+      - name: Upload docs artifacts
         uses: actions/upload-artifact@v4
         with:
           name: site-docs
-          path: docs/site-docs.zip
-          if-no-files-found: warn
+          path: |
+            docs/site-docs.zip
+            docs/api
+          if-no-files-found: error
