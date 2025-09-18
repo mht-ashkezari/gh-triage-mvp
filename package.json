@@ -4,15 +4,34 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs:openapi": "pnpm --filter @ghtriage/contracts openapi",
+    "docs:redoc": "redoc-cli bundle packages/contracts/docs/openapi/bff.openapi.json -o docs/api/bff.html && redoc-cli bundle packages/contracts/docs/openapi/runs.openapi.json -o docs/api/runs.html",
+    "docs:typedoc": "typedoc",
+    "docs:api": "pnpm docs:openapi && pnpm docs:redoc && pnpm docs:typedoc",
+    "docs:zip": "rm -f site-docs.zip && (cd docs/api && zip -r ../site-docs.zip . || true) && test -f docs/site-docs.zip && echo 'site-docs.zip ready at docs/site-docs.zip'"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@redocly/cli": "^2.1.4",
+    "@types/node": "^24.5.1",
     "eslint": "^9.35.0",
+    "eslint-plugin-jsdoc": "^58.1.1",
+    "eslint-plugin-tsdoc": "^0.4.0",
     "prettier": "^3.6.2",
+    "redoc-cli": "^0.13.21",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.5",
+    "typedoc": "^0.28.13",
     "typescript": "^5.9.2"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "dependencies": {
+    "@ts-rest/core": "^3.45.0",
+    "@ts-rest/open-api": "^3.52.1",
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.23.0"
   }
 }

@@ -1,0 +1,15 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": [
+        "packages/schemas/src/index.ts",
+        "packages/contracts/src/index.ts"
+    ],
+    "out": "docs/api/typedoc",
+    "entryPointStrategy": "resolve",
+    "excludePrivate": true,
+    "excludeProtected": false,
+    "excludeInternal": true,
+    "githubPages": false,
+    "readme": "none",
+    "tsconfig": "tsconfig.json"
+}
