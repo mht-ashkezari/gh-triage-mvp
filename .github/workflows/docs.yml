@@ -38,7 +38,7 @@ jobs:
           NODE_ENV: development
       
       - name: Build workspace (tsc)
-        run: pnpm -r build --if-present
+        run: pnpm -r --if-present run build
       - name: Build API docs (OpenAPI + TypeDoc)
         run: pnpm docs:api
 
