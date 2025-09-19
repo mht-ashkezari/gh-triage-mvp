@@ -1,0 +1,30 @@
+name: KPI Spec
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "docs/kpis.yaml"
+      - "packages/kpi-spec/**"
+      - "scripts/kpi_*"
+      - ".github/workflows/kpi-lint.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: corepack enable && pnpm -v
+      - run: pnpm i --frozen-lockfile
+      - run: pnpm run schema:kpi
+      - run: pnpm run kpi:check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kpi-schema-and-spec
+          path: |
+            packages/schemas/kpis.schema.json
+            docs/kpis.yaml

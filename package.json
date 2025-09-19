@@ -9,7 +9,10 @@
     "docs:redoc": "mkdir -p docs/api && redoc-cli bundle docs/openapi/bff.openapi.json -o docs/api/bff.html && redoc-cli bundle docs/openapi/runs.openapi.json -o docs/api/runs.html",
     "docs:typedoc": "typedoc",
     "docs:api": "pnpm docs:openapi && pnpm docs:redoc && pnpm docs:typedoc",
-    "docs:zip": "rm -f site-docs.zip && (cd docs/api && zip -r ../site-docs.zip . || true) && test -f docs/site-docs.zip && echo 'site-docs.zip ready at docs/site-docs.zip'"
+    "docs:zip": "rm -f site-docs.zip && (cd docs/api && zip -r ../site-docs.zip . || true) && test -f docs/site-docs.zip && echo 'site-docs.zip ready at docs/site-docs.zip'",
+    "schema:kpi": "ts-node scripts/kpi_schema.generate.ts",
+    "kpi:check": "ts-node scripts/kpi_check.ts docs/kpis.yaml",
+    "ci:kpi": "pnpm schema:kpi && pnpm kpi:check"
   },
   "keywords": [],
   "author": "",
@@ -25,7 +28,9 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
     "typedoc": "^0.28.13",
-    "typescript": "^5.9.2"
+    "typescript": "^5.5.4",
+    "yaml": "^2.4.1",
+    "zod-to-json-schema": "^3.23.0"
   },
   "packageManager": "pnpm@9.12.0",
   "dependencies": {

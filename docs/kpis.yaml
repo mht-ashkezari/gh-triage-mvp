@@ -1,0 +1,85 @@
+version: 1
+owner: "project-core"
+
+kpis:
+  - key: json_validity_rate
+    name: JSON validity rate
+    description: Percentage of LLM JSON outputs that pass schema validation (after ≤2 repair attempts).
+    formula: valid_json_outputs / total_llm_outputs
+    target: ">= 0.98"
+    source:
+      type: otel_metric
+      metric_name: app.llm.json_valid
+      labels: { step: "B|D" }
+    cadence: per_run
+    alerting: { warn_below: 0.98 }
+
+  - key: a2e_p50_seconds
+    name: End-to-end latency p50 (A→E)
+    description: 50th percentile runtime for a full pipeline run.
+    formula: percentile(latency_seconds, 0.50)
+    target: "<= 60"
+    source:
+      type: otel_trace
+      span_name: "pipeline.a2e"
+    cadence: daily
+    alerting: { warn_above: 60 }
+
+  - key: a2e_p95_seconds
+    name: End-to-end latency p95 (A→E)
+    description: 95th percentile runtime for a full pipeline run.
+    formula: percentile(latency_seconds, 0.95)
+    target: "<= 120"
+    source:
+      type: otel_trace
+      span_name: "pipeline.a2e"
+    cadence: daily
+    alerting: { warn_above: 120 }
+
+  - key: label_f1
+    name: Label prediction F1 (micro)
+    description: Micro-averaged F1 on a held-out set from the reference repo(s).
+    formula: f1_micro(true_labels, pred_labels)
+    target: ">= 0.70"
+    source:
+      type: sql_query
+      connection: default
+      query: "select value from model_metrics where metric='label_f1_micro' order by created_at desc limit 1"
+    cadence: weekly
+    alerting: { warn_below: 0.70 }
+
+  - key: dup_at_5
+    name: Duplicate detection @5
+    description: Mean hit-rate of the true duplicate in the top-5 ranked results.
+    formula: mean(hit_in_top5)
+    target: ">= 0.60"
+    source:
+      type: sql_query
+      connection: default
+      query: "select value from model_metrics where metric='dup_at_5' order by created_at desc limit 1"
+    cadence: weekly
+    alerting: { warn_below: 0.60 }
+
+  - key: release_edit_rate
+    name: Maintainer edit rate on release notes
+    description: Fraction of release-draft entries edited/removed by a maintainer.
+    formula: edits / total_entries
+    target: "<= 0.30"
+    source:
+      type: blob_diff
+      bucket: "releases"
+      path_pattern: "drafts/{tag}/diff.json"
+    cadence: weekly
+    alerting: { warn_above: 0.30 }
+
+  - key: mean_cost_usd_per_run
+    name: Mean cost per run (USD)
+    description: Average provider cost for A→E runs over a recent window.
+    formula: mean(cost_usd)
+    target: "<= 0.25"
+    source:
+      type: sql_query
+      connection: default
+      query: "select avg(cost_usd) from runs where type='A2E' and created_at > now() - interval '7 days'"
+    cadence: daily
+    alerting: { warn_above: 0.25 }
