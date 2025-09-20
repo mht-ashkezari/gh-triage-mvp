@@ -20,8 +20,8 @@ jobs:
       - run: pnpm -w i
       - run: pnpm --filter @ghtriage/kpi-spec run build
       - run: pnpm --filter @ghtriage/cli run build
-      - run: pnpm schema:kpi
-      - run: pnpm kpi:check
+- run: pnpm --filter @ghtriage/cli run kpi:schema
+- run: pnpm --filter @ghtriage/cli run kpi:check
       - uses: actions/upload-artifact@v4
         with:
           name: kpi-schema
