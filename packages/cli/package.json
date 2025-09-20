@@ -1,0 +1,29 @@
+{
+    "name": "@ghtriage/cli",
+    "version": "0.0.1",
+    "private": true,
+    "bin": {
+        "ghtriage": "dist/index.js"
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "dev": "ts-node src/index.ts",
+        "repos:score": "ts-node src/commands/repos-score.ts --file ../../docs/repo_candidates.txt",
+        "kpi:check": "ts-node src/commands/kpi-check.ts",
+        "kpi:schema": "ts-node src/commands/kpi-schema.ts"
+    },
+    "dependencies": {
+        "@octokit/app": "^14.0.0",
+        "@octokit/plugin-paginate-rest": "^11.0.0",
+        "@octokit/rest": "^20.0.0",
+        "csv-writer": "^1.6.0",
+        "p-limit": "^6.0.0",
+        "yaml": "^2.5.0",
+        "@ghtriage/kpi-spec": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.6.3"
+    }
+}

@@ -1,0 +1,1 @@
+export { KpiSpec } from "./spec";
