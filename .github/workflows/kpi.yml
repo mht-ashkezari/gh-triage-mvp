@@ -1,0 +1,20 @@
+name: KPI Spec
+on:
+  pull_request:
+    branches: [main]
+    paths: ["docs/kpis.yaml","packages/kpi-spec/**","packages/cli/**","package.json"]
+jobs:
+  kpi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: corepack enable && pnpm -v
+      - run: pnpm -w i
+      - run: pnpm --filter @ghtriage/kpi-spec run build
+      - run: pnpm --filter @ghtriage/cli run build
+      - run: pnpm schema:kpi
+      - run: pnpm kpi:check
+      - uses: actions/upload-artifact@v4
+        with: { name: kpi-schema, path: "packages/schemas/kpis.schema.json" }

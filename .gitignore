@@ -92,3 +92,6 @@ docs/api/
 # 
 /scripts    
 /_snapshots                
+
+package.json.bak
+/cli/
