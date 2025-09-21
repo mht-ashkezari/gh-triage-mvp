@@ -1,14 +1,21 @@
+# configs/repo_scoring.yaml
 weights:
-  volume: 0.20
-  labels: 0.15
-  recent_activity_90d: 0.20
-  license_permissive: 0.10
+  volume: 0.25
+  labels: 0.05
+  recent_activity_90d: 0.35
+  license_permissive: 0.1
   templates: 0.05
-  language_alignment: 0.10
-  diversity: 0.10
-  private_ready: 0.10
+  language_alignment: 0.15
+  diversity: 0.03
+  private_ready: 0.02
+
 caps:
   volume_max: 5000
   recent_activity_max: 1000
+
 language_alignment:
-  primary_whitelist: ["TypeScript", "JavaScript", "C#", "CSharp", "Python"]
+  primary_whitelist:
+    - TypeScript
+    - JavaScript
+    - C#
+    - Python
