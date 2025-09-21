@@ -1,4 +1,4 @@
-# Repo Selection Criteria (P0.2.A)
+# Repo Selection Criteria 
 We score candidate repos on normalized features weighted by configs/repo_scoring.yaml.
 
 **Features**
