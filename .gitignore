@@ -26,7 +26,7 @@ apps/**/.vercel/
 apps/**/out/
 apps/bff/.env
 apps/bff/data/
-
+/.pnpm-store
 # --- General build artifacts ---
 dist/
 build/
@@ -36,6 +36,8 @@ coverage/
 # --- Env & secrets (keep only .env.example tracked) ---
 .env
 .env.*
+**/.env
+*.env.local
 !.env.example
 *.pem
 *.key
