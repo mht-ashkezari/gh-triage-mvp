@@ -24,6 +24,8 @@ apps/**/.next/
 apps/**/.nuxt/
 apps/**/.vercel/
 apps/**/out/
+apps/bff/.env
+apps/bff/data/
 
 # --- General build artifacts ---
 dist/
