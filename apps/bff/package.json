@@ -1,0 +1,24 @@
+{
+  "name": "@ghtriage/bff",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@octokit/app": "^14.0.0",
+    "@octokit/rest": "^20.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.0",
+    "@types/cors": "^2.8.17",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
