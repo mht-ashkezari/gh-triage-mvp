@@ -1,0 +1,14 @@
+name: gh-triage-mvp
+webhook_active: true
+webhook_events:
+  - issues
+  - issue_comment
+  - pull_request
+  - pull_request_review
+  - label
+  - release
+repository_permissions:
+  metadata: read
+  contents: read
+  issues: read
+  pull_requests: read
