@@ -1,0 +1,53 @@
+[
+  {
+    "full_name": "microsoft/vscode",
+    "private": false,
+    "language_primary": "TypeScript",
+    "license_spdx": "MIT",
+    "features": {
+      "volume": 225626,
+      "labels": 603,
+      "recent_activity_90d": 20102,
+      "license_permissive": 1,
+      "templates": 1,
+      "language_alignment": 1,
+      "diversity": 46,
+      "private_ready": 0
+    },
+    "score": 0.9705
+  },
+  {
+    "full_name": "vercel/next.js",
+    "private": false,
+    "language_primary": "JavaScript",
+    "license_spdx": "MIT",
+    "features": {
+      "volume": 167299,
+      "labels": 79,
+      "recent_activity_90d": 3667,
+      "license_permissive": 1,
+      "templates": 1,
+      "language_alignment": 1,
+      "diversity": 13,
+      "private_ready": 0
+    },
+    "score": 0.7268
+  },
+  {
+    "full_name": "microsoft/TypeScript",
+    "private": false,
+    "language_primary": "TypeScript",
+    "license_spdx": "Apache-2.0",
+    "features": {
+      "volume": 125109,
+      "labels": 148,
+      "recent_activity_90d": 1111,
+      "license_permissive": 1,
+      "templates": 1,
+      "language_alignment": 1,
+      "diversity": 3,
+      "private_ready": 0
+    },
+    "score": 0.6872
+  }
+]

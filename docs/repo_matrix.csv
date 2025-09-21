@@ -1,0 +1,4 @@
+full_name,private,language_primary,license_spdx,volume,labels,recent_activity_90d,license_permissive,templates,language_alignment,diversity,private_ready,score
+microsoft/vscode,false,TypeScript,MIT,225626,603,20102,1,1,1,46,0,0.9705
+vercel/next.js,false,JavaScript,MIT,167299,79,3667,1,1,1,13,0,0.7268
+microsoft/TypeScript,false,TypeScript,Apache-2.0,125109,148,1111,1,1,1,3,0,0.6872
