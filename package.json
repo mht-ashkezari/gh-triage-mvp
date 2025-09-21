@@ -12,7 +12,7 @@
     "schema:kpi": "ghtriage kpi schema",
     "kpi:check": "ghtriage kpi check",
     "ci:kpi": "pnpm schema:kpi && pnpm kpi:check",
-    "score": "ghtriage repos score --file docs/repo_candidates.txt",
+    "score": "ghtriage repos score",
     "score:args": "ghtriage repos score"
   },
   "keywords": [],
