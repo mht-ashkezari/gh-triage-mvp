@@ -1,17 +1,22 @@
 #!/usr/bin/env node
-/* eslint-disable @typescript-eslint/no-var-requires */
 const [, , group = "", cmd = "", ...rest] = process.argv;
 
-function main() {
+async function main() {
+  if (group === "repos" && cmd === "score") {
+    const { main } = await import("./commands/repos-score");
+    return main(rest);
+  }
   if (group === "kpi" && cmd === "check") {
-    const { main } = require("./commands/kpi-check");
+    const { main } = await import("./commands/kpi-check");
     return main(rest);
   }
   if (group === "kpi" && cmd === "schema") {
-    const { main } = require("./commands/kpi-schema");
+    const { main } = await import("./commands/kpi-schema");
     return main(rest);
   }
-  console.error("Usage:\n  ghtriage kpi check\n  ghtriage kpi schema");
+  console.error(
+    "Usage:\n  ghtriage repos score [--file path]\n  ghtriage kpi check\n  ghtriage kpi schema"
+  );
   process.exit(2);
 }
 main();
