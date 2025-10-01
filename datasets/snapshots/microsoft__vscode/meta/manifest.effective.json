@@ -1,0 +1,9 @@
+{
+  "repo": "microsoft__vscode",
+  "window": {
+    "since": "2024-01-01T00:00:00Z",
+    "until": "2025-01-01T00:00:00Z"
+  },
+  "at": "2025-10-01T15:14:39.983Z",
+  "manifest_version": "snapshot-manifest.v1"
+}
