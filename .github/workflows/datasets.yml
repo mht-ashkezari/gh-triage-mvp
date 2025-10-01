@@ -42,13 +42,8 @@ jobs:
         run: pnpm -w --filter @ghtriage/schemas build
 
       - name: Manifest schema check
-        run: >
-          pnpm --filter @ghtriage/tools-snapshot exec node -e "
-          const fs=require('fs'); const yaml=require('js-yaml');
-          const { SnapshotManifestV1 } = require('../../packages/schemas/dist/datasets/snapshot.js');
-          const doc=yaml.load(fs.readFileSync('../../datasets/snapshots/manifest.yaml','utf8'));
-           SnapshotManifestV1.parse(doc); console.log('manifest OK');
-          "
+        working-directory: apps/tools/snapshot
+        run: pnpm exec node scripts/manifest-check.cjs
 
       - name: Ensure raw/ is not committed
         run: |
