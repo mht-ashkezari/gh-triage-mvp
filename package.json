@@ -13,7 +13,8 @@
     "kpi:check": "ghtriage kpi check",
     "ci:kpi": "pnpm schema:kpi && pnpm kpi:check",
     "score": "ghtriage repos score",
-    "score:args": "ghtriage repos score"
+    "score:args": "ghtriage repos score",
+    "snapshot": "node --env-file=.env apps/tools/snapshot/dist/cli.js datasets/snapshots/manifest.yaml"
   },
   "keywords": [],
   "author": "",
@@ -40,6 +41,8 @@
     "zod-to-json-schema": "^3.23.0"
   },
   "dependencies": {
+    "@octokit/plugin-retry": "^8.0.2",
+    "@octokit/plugin-throttling": "^11.0.2",
     "@ts-rest/core": "^3.45.0",
     "@ts-rest/open-api": "^3.52.1",
     "zod": "^3.25.76",
