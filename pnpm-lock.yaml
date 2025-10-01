@@ -54,6 +54,9 @@ importers:
       eslint-plugin-tsdoc:
         specifier: ^0.4.0
         version: 0.4.0
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
       p-limit:
         specifier: ^7.1.1
         version: 7.1.1
@@ -123,10 +126,10 @@ importers:
         version: 14.1.0
       '@octokit/plugin-retry':
         specifier: ^8.0.2
-        version: 8.0.2(@octokit/core@5.2.2)
+        version: 8.0.2(@octokit/core@7.0.4)
       '@octokit/plugin-throttling':
         specifier: ^11.0.2
-        version: 11.0.2(@octokit/core@5.2.2)
+        version: 11.0.2(@octokit/core@7.0.4)
       '@octokit/rest':
         specifier: ^20.1.1
         version: 20.1.2
@@ -3760,23 +3763,10 @@ snapshots:
       '@octokit/core': 7.0.4
       '@octokit/types': 15.0.0
 
-  '@octokit/plugin-retry@8.0.2(@octokit/core@5.2.2)':
-    dependencies:
-      '@octokit/core': 5.2.2
-      '@octokit/request-error': 7.0.1
-      '@octokit/types': 15.0.0
-      bottleneck: 2.19.5
-
   '@octokit/plugin-retry@8.0.2(@octokit/core@7.0.4)':
     dependencies:
       '@octokit/core': 7.0.4
       '@octokit/request-error': 7.0.1
-      '@octokit/types': 15.0.0
-      bottleneck: 2.19.5
-
-  '@octokit/plugin-throttling@11.0.2(@octokit/core@5.2.2)':
-    dependencies:
-      '@octokit/core': 5.2.2
       '@octokit/types': 15.0.0
       bottleneck: 2.19.5
 

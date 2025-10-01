@@ -30,6 +30,7 @@
     "eslint": "^9.35.0",
     "eslint-plugin-jsdoc": "^58.1.1",
     "eslint-plugin-tsdoc": "^0.4.0",
+    "js-yaml": "^4.1.0",
     "p-limit": "^7.1.1",
     "prettier": "^3.6.2",
     "redoc-cli": "^0.13.21",
