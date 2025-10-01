@@ -1,0 +1,84 @@
+name: datasets-guard
+on:
+  pull_request:
+    paths:
+      - "datasets/snapshots/**"
+      - "packages/schemas/**"
+      - "apps/tools/snapshot/**"
+  push:
+    branches: [main]
+    paths:
+      - "datasets/snapshots/**"
+      - "packages/schemas/**"
+      - "apps/tools/snapshot/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Use a modern Node runtime that matches local dev (ESM-friendly)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Install workspace deps
+        run: pnpm i --frozen-lockfile
+
+      # Type-check the Node tool to catch TS issues early
+      - name: Typecheck snapshot tool
+        run: pnpm --filter @ghtriage/tools-snapshot typecheck
+
+      # Build the schemas package so we can import its built JS in the next step
+      - name: Build schemas
+        run: pnpm -w --filter @ghtriage/schemas build
+
+      # Validate the manifest against the Zod schema (ESM inline)
+      - name: Manifest schema check
+        run: |
+          node --input-type=module -e "
+            import fs from 'node:fs';
+            import yaml from 'js-yaml';
+            import { SnapshotManifestV1 } from '@ghtriage/schemas/datasets/snapshot';
+            const doc = yaml.load(fs.readFileSync('datasets/snapshots/manifest.yaml','utf8'));
+            SnapshotManifestV1.parse(doc);
+            console.log('manifest OK');
+          "
+
+      # Ensure no private raw payloads are tracked
+      - name: Ensure raw/ is not committed
+        run: |
+          RAW=$(git ls-files 'datasets/snapshots/**/raw/*' || true)
+          if [ -n "$RAW" ]; then
+            echo 'ERROR: raw/ files are tracked:'
+            echo "$RAW"
+            exit 2
+          fi
+          echo "OK: no raw/ files tracked."
+
+      # Only enforce size on *balanced* sample files we intend to commit
+      - name: Ensure balanced samples are tiny (<= 500 lines each)
+        shell: bash
+        run: |
+          set -e
+          files=$(find datasets/snapshots -type f -path '*/sample/*balanced*.jsonl' || true)
+          if [ -z "$files" ]; then
+            echo "No balanced sample files found; skipping size check."
+            exit 0
+          fi
+          FAIL=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            c=$(wc -l < "$f")
+            if [ "$c" -gt 500 ]; then
+              echo "Sample too large: $f ($c lines)"
+              FAIL=1
+            fi
+          done <<< "$files"
+          [ "$FAIL" -eq 0 ] || exit 3
+          echo "OK: all balanced samples ≤ 500 lines."
