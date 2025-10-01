@@ -1,0 +1,7 @@
+# Direct runtime dependencies for the sampler
+
+pandas
+pyyaml
+
+# Optional but useful for fast JSON I/O;
+orjson
