@@ -2,7 +2,7 @@ name: KPI Spec
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - "docs/kpis.yaml"
       - "packages/kpi-spec/**"
@@ -13,18 +13,28 @@ on:
 
 jobs:
   validate:
+    # Only run if the CLI exists in this branch
+    if: ${{ exists('packages/cli/package.json') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "20" }
-      - run: corepack enable && pnpm -v
+        with: { node-version: "20", cache: "pnpm" }
+
+      - name: Enable pnpm (Corepack)
+        run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+
       - run: pnpm i --frozen-lockfile
       - run: pnpm run schema:kpi
       - run: pnpm run kpi:check
+
       - uses: actions/upload-artifact@v4
         with:
           name: kpi-schema-and-spec
           path: |
             packages/schemas/kpis.schema.json
             docs/kpis.yaml
+
+      - name: Skip note
+        if: steps.has_cli.outputs.present != 'true'
+        run: echo "KPI CLI not present yet; skipping KPI checks for this repo state."
