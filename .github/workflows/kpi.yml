@@ -2,7 +2,7 @@ name: KPI Spec
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - docs/kpis.yaml
       - packages/kpi-spec/**
@@ -11,18 +11,20 @@ on:
 
 jobs:
   kpi:
+    # Only run if the CLI exists in this branch
+    if: ${{ exists('packages/cli/package.json') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "20" }
-      - run: corepack enable && pnpm -v
+        with: { node-version: "20", cache: "pnpm" }
+
+      - name: Enable pnpm (Corepack)
+        run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+
       - run: pnpm -w i
+
       - run: pnpm --filter @ghtriage/kpi-spec run build
       - run: pnpm --filter @ghtriage/cli run build
       - run: pnpm --filter @ghtriage/cli run kpi:schema
       - run: pnpm --filter @ghtriage/cli run kpi:check
-      - uses: actions/upload-artifact@v4
-        with:
-          name: kpi-schema
-          path: packages/schemas/kpis.schema.json
