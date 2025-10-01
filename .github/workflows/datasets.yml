@@ -32,6 +32,9 @@ jobs:
       - name: Install workspace deps
         run: pnpm i --frozen-lockfile
 
+      - name: Build schemas
+        run: pnpm -w --filter @ghtriage/schemas build
+
       - name: Typecheck snapshot tool
         run: pnpm -w --filter @ghtriage/tools-snapshot typecheck
 
