@@ -1,0 +1,16 @@
+{
+  "repo": "microsoft__vscode",
+  "window": {
+    "since": "2024-01-01T00:00:00Z",
+    "until": "2025-01-01T00:00:00Z"
+  },
+  "counts": {
+    "issues": 30126,
+    "pulls": 8851,
+    "commits": 0,
+    "labels": 0,
+    "sample_issues": 30126,
+    "sample_pulls": 8851
+  },
+  "generated_at": "2025-10-01T15:26:35.491Z"
+}
