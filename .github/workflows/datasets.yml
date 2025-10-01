@@ -24,7 +24,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20 # or 22 if you prefer
-          cache: pnpm
 
       - name: Enable pnpm via Corepack
         run: corepack enable && corepack prepare pnpm@9.12.0 --activate
