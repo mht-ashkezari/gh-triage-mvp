@@ -13,10 +13,8 @@ const SnapshotRepo = z.object({
 });
 
 //  accept both "snapshot.manifest.v1" and "snapshot-manifest.v1"
-const ManifestVersion = z.union([
-    z.literal("snapshot.manifest.v1"),
-    z.literal("snapshot-manifest.v1"),
-]);
+
+const ManifestVersion = z.literal("snapshot.manifest.v1");
 
 export const SnapshotManifestV1 = z.object({
     version: ManifestVersion,
@@ -29,16 +27,20 @@ export const SnapshotManifestV1 = z.object({
 export type TSnapshotManifestV1 = z.infer<typeof SnapshotManifestV1>;
 
 export const StatsJson = z.object({
-    repo: z.string(),               // "owner__name"
-    window: SnapshotWindow,         // same window that was used to fetch
+    repo: z.string(),
+    window: SnapshotWindow,
     counts: z.object({
-        issues: z.number().int().nonnegative(),
-        pulls: z.number().int().nonnegative(),
-        commits: z.number().int().nonnegative(),
-        labels: z.number().int().nonnegative(),
-        sample_issues: z.number().int().nonnegative(),
-        sample_pulls: z.number().int().nonnegative(),
+        issues: z.number().int(),
+        pulls: z.number().int(),
+        commits: z.number().int(),
+        labels: z.number().int(),
+        sample_issues: z.number().int(),
+        sample_pulls: z.number().int(),
     }),
     generated_at: z.string().datetime(),
+    acceptance: z.object({
+        target_label_min: z.number().int().positive(),
+        note: z.string()
+    }).optional(),
 });
 export type TStatsJson = z.infer<typeof StatsJson>;
