@@ -47,3 +47,17 @@ export function toPullSample(row: any): PullSample {
         labels: (row.labels ?? []).map((l: any) => ({ name: l.name })),
     };
 }
+
+
+const EMAIL = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+const TOKEN = /\b(ghp|github_pat|ghs)_[A-Za-z0-9_]{20,}\b/gi;
+const CODE_FENCE = /```[\s\S]*?```/g;
+
+export function sanitizeBody(body?: string): { short: string; sha: string } {
+    let t = (body ?? "");
+    t = t.replace(CODE_FENCE, "[code_block]");
+    t = t.replace(EMAIL, "[redacted-email]").replace(TOKEN, "[redacted-token]");
+    t = t.slice(0, 4000).replace(/\s+/g, " ").trim();
+    const sha = crypto.createHash("sha256").update(t).digest("hex");
+    return { short: t, sha };
+}
