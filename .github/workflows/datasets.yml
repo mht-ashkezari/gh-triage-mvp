@@ -37,13 +37,9 @@ jobs:
 
       - name: Typecheck snapshot tool
         run: pnpm -w --filter @ghtriage/tools-snapshot typecheck
-
-      - name: Build schemas
-        run: pnpm -w --filter @ghtriage/schemas build
-
       - name: Manifest schema check
-        working-directory: apps/tools/snapshot
-        run: pnpm exec node scripts/manifest-check.cjs
+        run: |
+          node apps/tools/snapshot/scripts/manifest-check.cjs datasets/snapshots/manifest.yaml
 
       - name: Ensure raw/ is not committed
         run: |
