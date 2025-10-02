@@ -122,3 +122,8 @@ datasets/**/.cache/
 /datasets/snapshots/*/*/raw/
 /datasets/snapshots/*/*/raw/**
 
+
+# datasets
+/datasets/snapshots/*/raw/
+.env
+
