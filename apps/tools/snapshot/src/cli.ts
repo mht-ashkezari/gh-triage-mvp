@@ -1,10 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import yaml from "js-yaml";
+import "dotenv/config";
 import { ensureDir } from "./io.js";
-import { fetchIssues, fetchPulls } from "./fetch.js";
+import { fetchIssues, fetchPulls, fetchLabels, fetchCommits } from "./fetch.js";
 import { SnapshotManifestV1, StatsJson } from "@ghtriage/schemas/datasets/snapshot";
-import { getAuthOctokit } from "./token.js";
+import { makeOctokitFromEnv } from "./token.js";
+
 
 const now = () => new Date().toISOString();
 const DBG = process.env.DEBUG === "1" || process.env.DEBUG === "true";
@@ -17,7 +19,7 @@ function flag(name: string): string | undefined {
 
 const manifestPath = process.argv[2] || "datasets/snapshots/manifest.yaml";
 const onlySlug = flag("only"); // "owner__repo"
-const types = (flag("types") || "issues,pulls")
+const types = (flag("types") || "issues,pulls,labels,commits")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
@@ -26,21 +28,19 @@ const sinceOverride = flag("since");
 const untilOverride = flag("until");
 const directionFlag = flag("direction") as "asc" | "desc" | undefined; // manual override
 
-// Create a single client for the whole run
-const octo = await getAuthOctokit();
-
-// Optional: friendlier auth sanity check
+// Create a single client for the whole run (prefer GitHub App; fall back to PAT)
+let octo;
+let authKind: "app" | "pat";
+let who = "";
 try {
-    const me = await octo.request("GET /user");
-    const who = me.data?.login ?? "(installation token)";
-    console.log(`Auth OK as: ${who}`);
+    const r = await makeOctokitFromEnv();
+    octo = r.octo;
+    authKind = r.kind;
+    who = r.who;
+    console.log(`Auth OK as: ${who}${authKind === "app" ? " [GitHub App]" : ""}`);
 } catch (e: any) {
-    if (e?.status === 401) {
-        console.error(
-            "GitHub auth failed (401). Set a valid GITHUB_TOKEN or App envs (GITHUB_APP_ID, GITHUB_PRIVATE_KEY_BASE64, GITHUB_INSTALLATION_ID).",
-        );
-    }
-    throw e;
+    console.error(String(e?.message || e));
+    process.exit(1);
 }
 
 async function main() {
@@ -49,8 +49,8 @@ async function main() {
 
     for (const r of manifest.repos) {
         const win = {
-            since: sinceOverride ?? (r.window?.since ?? (manifest as any).window?.since),
-            until: untilOverride ?? (r.window?.until ?? (manifest as any).window?.until),
+            since: sinceOverride ?? (r.window?.since ?? (r as any).since ?? (manifest as any).window?.since),
+            until: untilOverride ?? (r.window?.until ?? (r as any).until ?? (manifest as any).window?.until),
         };
         const slug = `${r.owner}__${r.name}`;
         if (onlySlug && slug !== onlySlug) continue;
@@ -92,10 +92,13 @@ async function main() {
 
         let iRes = { n: 0, s: 0 };
         let pRes = { n: 0, s: 0 };
-
+        let lRes = { n: 0 };
+        let cRes = { n: 0 };
         const promises: Promise<any>[] = [];
         if (types.includes("issues")) promises.push(fetchIssues(ctxBase).then((v) => (iRes = v)));
         if (types.includes("pulls")) promises.push(fetchPulls(ctxBase).then((v) => (pRes = v)));
+        if (types.includes("labels")) promises.push(fetchLabels(ctxBase).then((v) => (lRes = v)));
+        if (types.includes("commits")) promises.push(fetchCommits(ctxBase).then((v) => (cRes = v)));
         if (promises.length) await Promise.all(promises);
 
         // Persist stats
@@ -105,18 +108,33 @@ async function main() {
             counts: {
                 issues: iRes.n,
                 pulls: pRes.n,
-                commits: 0,
-                labels: 0,
+                commits: cRes.n,
+                labels: lRes.n,
                 sample_issues: iRes.s,
                 sample_pulls: pRes.s,
             },
             generated_at: now(),
         });
-        fs.writeFileSync(path.join(metaDir, "stats.json"), JSON.stringify(stats, null, 2));
+
+
+        // Add acceptance note from manifest
+        const target = r.labels_target_per_class ?? 20;
+        const acceptance = {
+            target_label_min: target,
+            note: "See sampler coverage report.",
+        };
+
+        // Merge stats + acceptance into final payload
+        const finalStats = { ...stats, acceptance };
+
+        fs.writeFileSync(
+            path.join(metaDir, "stats.json"),
+            JSON.stringify(finalStats, null, 2),
+        );
+
         console.log(`[ok] ${slug} counts →`, stats.counts);
     }
 }
-
 main().catch((e) => {
     console.error(e);
     process.exit(2);
