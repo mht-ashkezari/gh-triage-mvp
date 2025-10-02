@@ -1,15 +1,20 @@
-version: "snapshot-manifest.v1"
+version: "snapshot.manifest.v1"
 window:
   since: "2024-01-01T00:00:00Z" # ISO; can be overridden per repo
   until: "2025-01-01T00:00:00Z"
 
 repos:
-  - owner: microsoft
-    name: vscode
-    labels_target_per_class: 2 # tuned so balanced sample ≲500 rows
+  #  - owner: microsoft
+  #    name: vscode
+  #    since: "2025-09-25T00:00:00Z"
+  #    until: "2025-10-01T00:00:00Z" # ~2 weeks, far fewer pages
+  #    types: [issues, labels] # skip pulls/commits
+  #    labels_target_per_class: 2 # tuned so balanced sample ≲500 rows
 
   - owner: mht-ashkezari
-    name: your-repo
+    name: triage-sandbox-public
+    since: "2024-11-25"
+    types: [issues, pulls, labels, commits]
     labels_target_per_class: 40 # adjust as you like
 
 notes:
