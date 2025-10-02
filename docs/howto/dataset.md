@@ -22,7 +22,7 @@ This document explains how to fetch private GitHub snapshots, produce a tiny **b
 Edit `datasets/snapshots/manifest.yaml`:
 
 ```yaml
-version: "snapshot-manifest.v1"
+version: "snapshot.manifest.v1"
 window:
   since: "2024-01-01T00:00:00Z"
   until: "2025-01-01T00:00:00Z"
