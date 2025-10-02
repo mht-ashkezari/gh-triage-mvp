@@ -1,6 +1,7 @@
 import type { Octokit } from "@octokit/rest";
 import { JSONLWriter } from "./io.js";
-import { redactIssueBodyToHash } from "./redact.js";
+import { sanitizeBody } from "./redact.js";
+import { url } from "node:inspector";
 
 export type Ctx = {
     octo: Octokit;
@@ -14,6 +15,9 @@ export type Ctx = {
     maxPages?: number; // soft cap for smoke runs
     direction?: "asc" | "desc"; // fetch order; default auto-picked in CLI
 };
+
+const firstLine = (s?: string) => (s ?? "").split("\n")[0];
+
 
 const DBG = process.env.DEBUG === "1" || process.env.DEBUG === "true";
 const toDate = (s?: string) => (s ? new Date(s) : undefined);
@@ -32,7 +36,75 @@ function pageBounds(arr: any[]) {
     return { first, last };
 }
 
-/** Issues: supports `since` natively; we also apply `until` and early-break. */
+export async function fetchLabels(ctx: Ctx) {
+    const rawW = new JSONLWriter(`${ctx.rawDir}/labels.jsonl`);
+    let rows = 0, pages = 0;
+
+    try {
+        const iterator = ctx.octo.paginate.iterator(ctx.octo.issues.listLabelsForRepo, {
+            owner: ctx.owner, repo: ctx.repo, per_page: 100,
+        });
+        for await (const page of iterator) {
+            pages++;
+            for (const l of page.data as any[]) {
+                rawW.write({ name: l.name, color: l.color, description: l.description ?? null });
+                rows++;
+            }
+            if (ctx.maxPages && pages >= ctx.maxPages) break;
+        }
+        await rawW.commit();
+        return { n: rows };
+    } catch (e) {
+        await rawW.abort(); throw e;
+    }
+}
+
+export async function fetchCommits(ctx: Ctx) {
+    const rawW = new JSONLWriter(`${ctx.rawDir}/commits.jsonl`);
+    let rows = 0, pages = 0;
+
+    try {
+        const iterator = ctx.octo.paginate.iterator(ctx.octo.repos.listCommits, {
+            owner: ctx.owner,
+            repo: ctx.repo,
+            per_page: 100,
+            since: ctx.since,
+            until: ctx.until,
+        });
+
+        for await (const page of iterator) {
+            pages++;
+            for (const c of page.data as any[]) {
+                const meta = c.commit ?? {};
+                const msg = meta.message ?? "";
+                const { short, sha } = sanitizeBody(msg); // sanitize commit message
+
+                rawW.write({
+                    sha: c.sha,
+                    author_login: c.author?.login ?? null,
+                    committer_login: c.committer?.login ?? null,
+                    message_firstline: firstLine(msg),
+                    message_short: short,   // NEW: PII-safe snippet
+                    message_sha: sha,       // NEW: stable hash
+                    date: meta.author?.date ?? meta.committer?.date ?? new Date().toISOString(),
+                    url: c.html_url ?? null, // handy for audits
+                });
+                rows++;
+            }
+            if (ctx.maxPages && pages >= ctx.maxPages) break;
+        }
+
+        await rawW.commit();
+        return { n: rows };
+    } catch (e) {
+        await rawW.abort();
+        throw e;
+    }
+}
+
+
+
+
 export async function fetchIssues(ctx: Ctx) {
     const rawW = new JSONLWriter(`${ctx.rawDir}/issues.jsonl`);
     const sampleW = new JSONLWriter(`${ctx.sampleDir}/issues.sample.jsonl`);
@@ -162,6 +234,17 @@ export async function fetchPulls(ctx: Ctx) {
 /* ---------- helpers to build records ---------- */
 
 function issueRecord(row: any) {
+    const { short, sha } = sanitizeBody(row.body);
+
+    // extract label strings once
+    const labelNames =
+        Array.isArray(row.labels)
+            ? row.labels
+                .map((l: any) => (typeof l === "string" ? l : l?.name))
+                .filter(Boolean)
+                .map((s: string) => s.trim())
+            : [];
+
     const record = {
         id: row.id,
         number: row.number,
@@ -171,9 +254,12 @@ function issueRecord(row: any) {
         updated_at: row.updated_at,
         closed_at: row.closed_at ?? null,
         user_login: row.user?.login ?? null,
-        labels: Array.isArray(row.labels) ? row.labels.map((l: any) => ({ name: l?.name ?? String(l) })) : [],
+        labels: labelNames,
         is_pull_request: !!row.pull_request,
-        body_sha256: redactIssueBodyToHash(row.body),
+        body_short: short,
+        body_sha: sha,
+        body_sha256: sha,
+        url: row.html_url ?? null,
     };
     const sample = {
         id: record.id,
@@ -181,13 +267,26 @@ function issueRecord(row: any) {
         title: record.title,
         state: record.state,
         created_at: record.created_at,
-        labels: record.labels,
+        labels: labelNames,
         is_pull_request: record.is_pull_request,
+        body_short: short.slice(0, 800),
+        url: record.url,
     };
     return { record, sample };
 }
 
 function pullRecordFromIssueRow(row: any) {
+    const { short, sha } = sanitizeBody(row.body);
+
+    const labelNames =
+        Array.isArray(row.labels)
+            ? row.labels
+                .map((l: any) => (typeof l === "string" ? l : l?.name))
+                .filter(Boolean)
+                .map((s: string) => s.trim())
+            : [];
+
+
     const record = {
         id: row.id,
         number: row.number,
@@ -197,7 +296,11 @@ function pullRecordFromIssueRow(row: any) {
         updated_at: row.updated_at,
         merged_at: null as string | null, // optional future enrichment
         user_login: row.user?.login ?? null,
-        labels: Array.isArray(row.labels) ? row.labels.map((l: any) => ({ name: l?.name ?? String(l) })) : [],
+        labels: labelNames,
+        body_short: short,
+        body_sha: sha,
+        url: row.html_url ?? null,
+
     };
     const sample = {
         id: record.id,
@@ -206,7 +309,10 @@ function pullRecordFromIssueRow(row: any) {
         state: record.state,
         created_at: record.created_at,
         merged_at: record.merged_at,
-        labels: record.labels,
+        labels: labelNames,
+        body_short: short.slice(0, 800),
+        url: record.url,
+        is_pull_request: true,  // explicit (since this is the PR path)
     };
     return { record, sample };
 }
