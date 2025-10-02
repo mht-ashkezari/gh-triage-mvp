@@ -127,3 +127,7 @@ datasets/**/.cache/
 /datasets/snapshots/*/raw/
 .env
 
+
+# snapshots: ignore raw & placeholder
+datasets/snapshots/*/raw/
+datasets/snapshots/*__your-repo/
