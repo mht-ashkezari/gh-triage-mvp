@@ -1,6 +1,6 @@
 import { Controller, Post, Headers, Req, UnauthorizedException, HttpCode } from "@nestjs/common";
 import type { Request } from "express";
-import crypto from "node:crypto";
+import * as crypto from "node:crypto";
 
 function verifyHmac(secret: string, body: unknown, sigHeader?: string): boolean {
     if (!sigHeader || !sigHeader.startsWith("sha256=")) return false;
