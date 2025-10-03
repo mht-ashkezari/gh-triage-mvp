@@ -120,14 +120,10 @@ datasets/**/.cache/
 **/raw/
 # ===  datasets: never commit raw payloads ===
 /datasets/snapshots/*/*/raw/
-/datasets/snapshots/*/*/raw/**
-
-
-# datasets
 /datasets/snapshots/*/raw/
-.env
 
 
 # snapshots: ignore raw & placeholder
-datasets/snapshots/*/raw/
-datasets/snapshots/*__your-repo/
+
+
+
