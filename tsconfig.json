@@ -1,20 +1,23 @@
 {
-    "files": [],
-    "references": [
-        {
-            "path": "./packages/schemas"
-        },
-        {
-            "path": "./packages/contracts"
-        }
-    ],
-    "compilerOptions": {
-        "composite": true,
-        "skipLibCheck": true,
-        "paths": {
-            "@ghtriage/schemas/*": [
-                "packages/schemas/src/*"
-            ]
-        }
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/schemas"
+    },
+    {
+      "path": "./packages/contracts"
     }
+  ],
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "composite": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@ghtriage/schemas/*": [
+        "packages/schemas/src/*"
+      ]
+    },
+    "baseUrl": "."
+  }
 }
