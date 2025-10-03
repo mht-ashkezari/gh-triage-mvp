@@ -40,6 +40,7 @@ jobs:
         run: |
           pnpm -F @ghtriage/schemas run build
           pnpm -F @ghtriage/kpi-spec run build
+
       - name: Build API docs (OpenAPI + TypeDoc)
         run: pnpm docs:api
 
