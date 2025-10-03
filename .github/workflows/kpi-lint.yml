@@ -5,28 +5,42 @@ on:
     branches: [main]
     paths:
       - "docs/kpis.yaml"
-      - "packages/kpi-spec/**"
-      - "scripts/kpi_*"
+      - "packages/schemas/kpis.schema.json"
+      - "tooling/validate-kpis.ts"
       - ".github/workflows/kpi-lint.yml"
       - "package.json"
       - "pnpm-lock.yaml"
+  workflow_dispatch: {}
 
 jobs:
   validate:
-    # Only run if the CLI exists in this branch
-    if: ${{ exists('packages/cli/package.json') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
-        with: { node-version: "20", cache: "pnpm" }
+        with:
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Enable pnpm (Corepack)
         run: corepack enable && corepack prepare pnpm@9.12.0 --activate
 
-      - run: pnpm i --frozen-lockfile
-      - run: pnpm run schema:kpi
-      - run: pnpm run kpi:check
+      - name: Install deps
+        run: pnpm i --frozen-lockfile
+
+      # Optional: only if you actually generate the schema in CI
+      - name: (opt) build schema
+        run: pnpm run --if-present schema:kpi
+
+      - name: Validate KPIs (CLI)
+        run: pnpm kpi:check
+
+      - name: Unit tests (KPIs)
+        run: pnpm test:kpi
+
+      - name: Render KPI table
+        run: node tooling/print-kpis.mjs
 
       - uses: actions/upload-artifact@v4
         with:
@@ -34,7 +48,3 @@ jobs:
           path: |
             packages/schemas/kpis.schema.json
             docs/kpis.yaml
-
-      - name: Skip note
-        if: steps.has_cli.outputs.present != 'true'
-        run: echo "KPI CLI not present yet; skipping KPI checks for this repo state."
