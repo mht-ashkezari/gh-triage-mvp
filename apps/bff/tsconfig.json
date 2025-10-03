@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "commonjs", // <-- IMPORTANT for NestJS
+    "target": "ES2021",
+    "module": "commonjs",
     "moduleResolution": "node",
     "rootDir": "src",
     "outDir": "dist",
     "skipLibCheck": true,
     "strict": true,
-    "experimentalDecorators": true, //
-    "emitDecoratorMetadata": true, //
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "useDefineForClassFields": false
