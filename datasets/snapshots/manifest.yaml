@@ -1,21 +1,26 @@
 version: "snapshot.manifest.v1"
+
+# Global default window (applies if not overridden per repo)
 window:
-  since: "2024-01-01T00:00:00Z" # ISO; can be overridden per repo
+  since: "2024-01-01T00:00:00Z"
   until: "2025-01-01T00:00:00Z"
 
+# Repos to snapshot
 repos:
-  #  - owner: microsoft
-  #    name: vscode
-  #    since: "2025-09-25T00:00:00Z"
-  #    until: "2025-10-01T00:00:00Z" # ~2 weeks, far fewer pages
-  #    types: [issues, labels] # skip pulls/commits
-  #    labels_target_per_class: 2 # tuned so balanced sample ≲500 rows
+  - owner: microsoft
+    name: vscode
+    types: [issues, labels]
+    target_label_min: 2 # matches what build_sample.py expects
+    since: "2024-10-01T00:00:00Z"
+    until: "2024-10-01T00:03:00Z"
 
   - owner: mht-ashkezari
     name: triage-sandbox-public
-    since: "2024-11-25"
+    since: "2024-11-25T00:00:00Z"
     types: [issues, pulls, labels, commits]
-    labels_target_per_class: 40 # adjust as you like
+    labels_target_per_class: 40 # your sandbox repo can be denser
 
 notes:
-  - "Private raw stored only under snapshots/<owner>__<repo>/raw; only sample+meta committed."
+  - "Raw data is only stored under snapshots/<owner>__<repo>/raw."
+  - "Only sample/ and meta/ are committed; raw/ must stay git-ignored."
+  - "For large repos (like microsoft/vscode), restrict the time window and skip heavy types."
