@@ -2,10 +2,10 @@ name: Docs
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     # Skip if the ONLY change is the lockfile
     paths-ignore:
-      - 'pnpm-lock.yaml'
+      - "pnpm-lock.yaml"
   workflow_dispatch:
 
 permissions:
@@ -23,8 +23,7 @@ jobs:
       - name: Setup Node 20 (with pnpm cache)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-
+          node-version: "20"
 
       - name: Enable Corepack and install pnpm
         run: |
@@ -36,9 +35,10 @@ jobs:
         run: pnpm install --frozen-lockfile
         env:
           NODE_ENV: development
-      
+
       - name: Build workspace (tsc)
-        run: pnpm -r --if-present run build
+        run: pnpm -r --filter @ghtriage/schemas --filter @ghtriage/kpi-spec --if-present run build
+
       - name: Build API docs (OpenAPI + TypeDoc)
         run: pnpm docs:api
 
