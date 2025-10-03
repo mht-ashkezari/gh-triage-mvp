@@ -1,0 +1,9 @@
+permissions:
+  metadata: read
+  contents: read
+  issues: read
+  pull_requests: read
+events:
+  - installation
+  - installation_repositories
+repository_selection: selected

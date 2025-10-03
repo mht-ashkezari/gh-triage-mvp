@@ -19,7 +19,9 @@
     "check:manifest": "node apps/tools/snapshot/scripts/manifest-check.cjs datasets/snapshots/manifest.yaml",
     "snapshot": "pnpm run build:datasets && node apps/tools/snapshot/dist/cli.js datasets/snapshots/manifest.yaml",
     "guard:samples": "node apps/tools/snapshot/scripts/guard-samples.mjs",
-    "guard:raw": "bash -lc \"! git ls-files | grep -E '^datasets/snapshots/.+?/raw/' || (echo 'raw/ tracked'; exit 1)\""
+    "guard:raw": "bash -lc \"! git ls-files | grep -E '^datasets/snapshots/.+?/raw/' || (echo 'raw/ tracked'; exit 1)\"",
+    "test:selacc": "vitest run tests/selacc*.spec.ts",
+    "test:selacc:watch": "vitest --watch tests/selacc*.spec.ts"
   },
   "keywords": [],
   "author": "",
@@ -37,9 +39,11 @@
     "eslint-plugin-jsdoc": "^58.1.1",
     "eslint-plugin-tsdoc": "^0.4.0",
     "js-yaml": "^4.1.0",
+    "nock": "^14.0.10",
     "p-limit": "^7.1.1",
     "prettier": "^3.6.2",
     "redoc-cli": "^0.13.21",
+    "supertest": "^7.1.4",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
     "typedoc": "^0.28.13",
