@@ -17,9 +17,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Enable Corepack BEFORE setup-node when using cache: pnpm
+      - run: corepack enable
       - uses: actions/setup-node@v4
-        with: { node-version: "20", cache: "pnpm" }
-      - run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+      - run: corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
       - run: pnpm test:selacc
 
@@ -30,8 +35,13 @@ jobs:
       GITHUB_WEBHOOK_SECRET: testsecret
     steps:
       - uses: actions/checkout@v4
+      # Enable Corepack BEFORE setup-node when using cache: pnpm
+      - run: corepack enable
       - uses: actions/setup-node@v4
-        with: { node-version: "20", cache: "pnpm" }
-      - run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+      - run: corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
       - run: pnpm test:selacc:e2e

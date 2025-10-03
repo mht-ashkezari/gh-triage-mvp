@@ -18,13 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Enable Corepack BEFORE setup-node when using cache: pnpm
+      - name: Enable pnpm (Corepack)
+        run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "pnpm"
-
-      - name: Enable pnpm (Corepack)
-        run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install deps
         run: pnpm i --frozen-lockfile
@@ -48,3 +50,4 @@ jobs:
           path: |
             packages/schemas/kpis.schema.json
             docs/kpis.yaml
+            docs/kpis.md
