@@ -120,8 +120,6 @@ datasets/**/.cache/
 **/raw/
 # ===  datasets: never commit raw payloads ===
 /datasets/snapshots/*/*/raw/
-/datasets/snapshots/*/*/raw/**
-
 /datasets/snapshots/*/raw/
 
 
