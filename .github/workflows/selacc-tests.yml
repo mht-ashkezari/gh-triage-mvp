@@ -1,9 +1,11 @@
+# .github/workflows/selacc-tests.yml
 name: SELACC Tests
 on:
   pull_request:
     branches: [main]
     paths:
       - "tests/selacc*.spec.ts"
+      - "apps/bff/src/**"
       - "docs/access/**"
       - "docs/selection/**"
       - "package.json"
@@ -11,16 +13,25 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  selacc:
+  selacc-unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+        with: { node-version: "20", cache: "pnpm" }
+      - run: corepack enable && corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
-      - name: Run SELACC tests
-        run: pnpm test:selacc
+      - run: pnpm test:selacc
+
+  selacc-e2e:
+    runs-on: ubuntu-latest
+    env:
+      SELACC_APP_MODULE_PATH: apps/bff/src/app.module
+      GITHUB_WEBHOOK_SECRET: testsecret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "pnpm" }
+      - run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+      - run: pnpm i --frozen-lockfile
+      - run: pnpm test:selacc:e2e

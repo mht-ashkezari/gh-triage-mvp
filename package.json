@@ -20,8 +20,10 @@
     "snapshot": "pnpm run build:datasets && node apps/tools/snapshot/dist/cli.js datasets/snapshots/manifest.yaml",
     "guard:samples": "node apps/tools/snapshot/scripts/guard-samples.mjs",
     "guard:raw": "bash -lc \"! git ls-files | grep -E '^datasets/snapshots/.+?/raw/' || (echo 'raw/ tracked'; exit 1)\"",
-    "test:selacc": "vitest run tests/selacc*.spec.ts",
-    "test:selacc:watch": "vitest --watch tests/selacc*.spec.ts"
+    "test:selacc": "pnpm -s run test:selacc:unit && pnpm -s run test:selacc:e2e",
+    "test:selacc:watch": "vitest --watch tests/selacc*.spec.ts",
+    "test:selacc:unit": "vitest run tests/selacc.access.spec.ts tests/selacc.selection.spec.ts",
+    "test:selacc:e2e": "SELACC_APP_MODULE_PATH=apps/bff/src/app.module GITHUB_WEBHOOK_SECRET=testsecret vitest run tests/selacc.webhook.e2e.spec.ts"
   },
   "keywords": [],
   "author": "",
