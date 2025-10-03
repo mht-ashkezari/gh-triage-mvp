@@ -7,7 +7,6 @@ import { fetchIssues, fetchPulls, fetchLabels, fetchCommits } from "./fetch.js";
 import { SnapshotManifestV1, StatsJson } from "@ghtriage/schemas/datasets/snapshot";
 import { makeOctokitFromEnv } from "./token.js";
 
-
 const now = () => new Date().toISOString();
 const DBG = process.env.DEBUG === "1" || process.env.DEBUG === "true";
 
@@ -116,7 +115,6 @@ async function main() {
             generated_at: now(),
         });
 
-
         // Add acceptance note from manifest
         const target = r.labels_target_per_class ?? 20;
         const acceptance = {
@@ -124,8 +122,38 @@ async function main() {
             note: "See sampler coverage report.",
         };
 
+        // Compute per_label_counts + sample_size from balanced sample if present
+        let perLabelCounts: Record<string, number> = {};
+        let sampleSize = iRes.s + pRes.s;
+        try {
+            const balancedPath = path.join(sampleDir, "issues.sample.balanced.jsonl");
+            if (fs.existsSync(balancedPath)) {
+                const rows = fs
+                    .readFileSync(balancedPath, "utf8")
+                    .trim()
+                    .split(/\r?\n/)
+                    .map((line) => JSON.parse(line));
+
+                sampleSize = rows.length;
+                for (const row of rows) {
+                    const labels = row.labels ?? ["_none_"];
+                    for (const lbl of labels) {
+                        const name = typeof lbl === "string" ? lbl : lbl.name || "_none_";
+                        perLabelCounts[name] = (perLabelCounts[name] || 0) + 1;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn(`[warn] failed to compute per_label_counts for ${slug}:`, e);
+        }
+
         // Merge stats + acceptance into final payload
-        const finalStats = { ...stats, acceptance };
+        const finalStats = {
+            ...stats,
+            acceptance,
+            sample_size: sampleSize,
+            per_label_counts: perLabelCounts,
+        };
 
         fs.writeFileSync(
             path.join(metaDir, "stats.json"),
