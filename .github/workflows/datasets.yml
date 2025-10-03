@@ -1,0 +1,55 @@
+name: datasets-validate
+
+on:
+  pull_request:
+    paths:
+      - "datasets/snapshots/**"
+      - "packages/schemas/**"
+      - "apps/tools/snapshot/**"
+      - ".github/workflows/datasets.yml"
+  push:
+    paths:
+      - "datasets/snapshots/**"
+      - "packages/schemas/**"
+      - "apps/tools/snapshot/**"
+      - ".github/workflows/datasets.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20 # or 22 if you prefer
+
+      - name: Enable pnpm via Corepack
+        run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+        # (alt) - uses: pnpm/action-setup@v4 with: { version: 9 }
+
+      - name: Install workspace deps
+        run: pnpm i ${{ github.ref == 'refs/heads/main' && '--frozen-lockfile' || '--no-frozen-lockfile' }}
+
+      - name: Build schemas
+        run: pnpm -w --filter @ghtriage/schemas build
+
+      - name: Typecheck snapshot tool
+        run: pnpm -w --filter @ghtriage/tools-snapshot typecheck
+      - name: Manifest schema check
+        run: |
+          node apps/tools/snapshot/scripts/manifest-check.cjs datasets/snapshots/manifest.yaml
+
+      - name: Ensure raw/ is not committed
+        run: |
+          if git ls-files | grep -E '^datasets/snapshots/.+?/raw/'; then
+            echo 'ERROR: raw/ files are tracked'; exit 1; fi
+
+      - name: Ensure samples are tiny (<= 500 lines each)
+        run: |
+          set -e
+          for f in $(find datasets/snapshots -type f -path '*/sample/*.jsonl' || true); do
+            c=$(wc -l < "$f"); if [ "$c" -gt 500 ]; then
+              echo "::error file=$f::Sample too large ($c lines)"; exit 1; fi
+          done

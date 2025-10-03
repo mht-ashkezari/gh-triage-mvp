@@ -1,0 +1,26 @@
+{
+    "name": "@ghtriage/tools-snapshot",
+    "private": true,
+    "type": "module",
+    "bin": {
+        "ghsnap": "dist/cli.js"
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "dev": "node --enable-source-maps dist/cli.js",
+        "predev": "pnpm run build",
+        "typecheck": "tsc -p tsconfig.json --noEmit"
+    },
+    "dependencies": {
+        "@ghtriage/schemas": "workspace:*",
+        "@octokit/app": "^14.1.0",
+        "@octokit/rest": "^20.1.2",
+        "js-yaml": "^4.1.0",
+        "p-limit": "^5.0.0",
+        "zod": "^3.25.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.12.12",
+        "typescript": "^5.6.3"
+    }
+}

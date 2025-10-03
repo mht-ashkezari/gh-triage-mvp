@@ -47,7 +47,10 @@ id_ed25519*
 *.p12
 *.pfx
 *.keystore
-
+/apps/**/.venv/
+/packages/**/.venv/
+.venv/
+venv/
 # --- Python / Analytics (DuckDB, dbt, GE, tests) ---
 __pycache__/
 *.py[cod]
@@ -99,3 +102,32 @@ docs/api/
 
 package.json.bak
 /cli/
+
+# === dataset raw payloads  ===
+/datasets/snapshots/*/*/raw/
+/datasets/snapshots/*/*/raw/**
+# keep raw private
+datasets/snapshots/*/*/raw/
+
+# typical local caches
+datasets/**/.cache/
+
+# tmp shards from snapshot runs
+/datasets/snapshots/**/**/*.run-*.tmp
+/datasets/snapshots/**/**/.tmp
+*.tmp
+*.run-*.tmp
+**/raw/
+# ===  datasets: never commit raw payloads ===
+/datasets/snapshots/*/*/raw/
+/datasets/snapshots/*/*/raw/**
+
+
+# datasets
+/datasets/snapshots/*/raw/
+.env
+
+
+# snapshots: ignore raw & placeholder
+datasets/snapshots/*/raw/
+datasets/snapshots/*__your-repo/

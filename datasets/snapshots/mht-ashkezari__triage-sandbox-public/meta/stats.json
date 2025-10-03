@@ -1,0 +1,20 @@
+{
+  "repo": "mht-ashkezari__triage-sandbox-public",
+  "window": {
+    "since": "2025-09-01T00:00:00Z",
+    "until": "2025-10-05T00:00:00Z"
+  },
+  "counts": {
+    "issues": 10,
+    "pulls": 3,
+    "commits": 8,
+    "labels": 10,
+    "sample_issues": 10,
+    "sample_pulls": 3
+  },
+  "generated_at": "2025-10-02T18:18:00.054Z",
+  "acceptance": {
+    "target_label_min": 40,
+    "note": "See sampler coverage report."
+  }
+}
