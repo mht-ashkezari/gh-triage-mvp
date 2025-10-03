@@ -1,0 +1,27 @@
+name: Datasets Tests
+
+on:
+    pull_request:
+        branches: [main]
+        paths:
+            - "datasets/snapshots/**"
+            - "apps/mlops/samplers/**"
+            - "tests/datasets*.spec.ts"
+            - "package.json"
+            - "pnpm-lock.yaml"
+    workflow_dispatch: {}
+
+jobs:
+    datasets-tests:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - run: corepack enable
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "pnpm"
+            - run: corepack prepare pnpm@9.12.0 --activate
+            - run: pnpm i --frozen-lockfile
+            # Run full dataset pipeline instead of just tests
+            - run: make -C apps/mlops/samplers datasets-all ONLY=microsoft__vscode MAX_PAGES=4

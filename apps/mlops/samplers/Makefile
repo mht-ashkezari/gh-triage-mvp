@@ -37,3 +37,34 @@ show:
 
 clean:
 	rm -rf $(VENV)
+
+
+# === Full dataset pipeline ===
+MAX_PAGES ?= 4
+ONLY ?=
+
+datasets-all:
+	# 1. Run snapshot (scoped if ONLY/MAX_PAGES set)
+	if [ -n "$(ONLY)" ]; then \
+		echo "→ Snapshotting only $(ONLY) with max-pages=$(MAX_PAGES)"; \
+		pnpm run snapshot --only $(ONLY) --types issues --max-pages $(MAX_PAGES); \
+	else \
+		pnpm run snapshot; \
+	fi
+
+	# 2. Build balanced samples
+	if [ -n "$(ONLY)" ]; then \
+		$(MAKE) sample REPO=$(ONLY); \
+	else \
+		for repo in $$(yq -r '.repos[] | .owner + "__" + .name' $(ROOT)/datasets/snapshots/manifest.yaml); do \
+			echo "→ Building balanced sample for $$repo"; \
+			$(MAKE) sample REPO=$$repo || exit 1; \
+		done; \
+	fi
+
+	# 3. Remove raw/ directories and tmp shards (must not be committed)
+	rm -rf $(ROOT)/datasets/snapshots/*/raw
+	find $(ROOT)/datasets/snapshots -type f -name '*.run-*.tmp' -delete
+
+	# 4. Run dataset validation tests
+	pnpm vitest run tests/datasets.spec.ts
