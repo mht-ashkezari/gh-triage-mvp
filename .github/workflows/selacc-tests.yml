@@ -1,0 +1,25 @@
+name: SELACC Tests
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "tests/selacc*.spec.ts"
+      - "docs/access/**"
+      - "docs/selection/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+  workflow_dispatch: {}
+jobs:
+  selacc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+      - run: pnpm i --frozen-lockfile
+      - name: Run SELACC tests
+        run: pnpm test:selacc
