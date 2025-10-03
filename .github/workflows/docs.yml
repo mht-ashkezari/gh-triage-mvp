@@ -37,8 +37,9 @@ jobs:
           NODE_ENV: development
 
       - name: Build workspace (tsc)
-        run: pnpm -r --filter @ghtriage/schemas --filter @ghtriage/kpi-spec --if-present run build
-
+        run: |
+          pnpm -F @ghtriage/schemas run build
+          pnpm -F @ghtriage/kpi-spec run build
       - name: Build API docs (OpenAPI + TypeDoc)
         run: pnpm docs:api
 
