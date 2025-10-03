@@ -185,7 +185,7 @@ def main():
         "target_label_min": n_per,
         "labels_available": len(labels_map),
         "per_label_counts": dict(counts),
-        "sample_size": len(out_rows),
+        "sample_size": len(out_rows),  # ✅ added field for tests
         "input_sample": str(sample_in.relative_to(REPO_ROOT)),
         "output_sample": str(sample_out.relative_to(REPO_ROOT)),
     }
