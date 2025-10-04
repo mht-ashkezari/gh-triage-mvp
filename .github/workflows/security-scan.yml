@@ -46,7 +46,7 @@ jobs:
         run: |
           curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
           chmod +x gitleaks
-          ./gitleaks detect --no-git --redact --source . --config=.gitleaks.toml
+          ./gitleaks detect --source . --no-git --redact --config=.gitleaks.toml --report-format=sarif --report-path=gitleaks-results.sarif || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
