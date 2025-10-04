@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS security_audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  actor TEXT NOT NULL,
+  action TEXT NOT NULL,
+  target TEXT,
+  repo TEXT,
+  result TEXT,
+  pii_hits INTEGER DEFAULT 0,
+  notes TEXT
+);
