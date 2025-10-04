@@ -1,29 +1,46 @@
 name: Security & Compliance Scan
+
 on:
   pull_request:
     paths:
-      [
-        "datasets/**",
-        "scripts/**",
-        "packages/shared/**",
-        "docs/security_policy.md",
-      ]
+      - "datasets/**"
+      - "scripts/**"
+      - "packages/shared/**"
+      - "docs/security_policy.md"
+
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: pnpm i
-      - run: pnpm security:redact
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Enable Corepack and install pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.12.0 --activate
+          pnpm -v
+
+      - name: Install dependencies
+        run: pnpm i
+
+      - name: Run redaction scan
+        run: pnpm security:redact
+
       - name: Run Trivy (OSS deps)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.16.1
         with:
           scan-type: fs
           severity: CRITICAL,HIGH
+
       - name: Run Gitleaks
         uses: zricethezav/gitleaks-action@v2
-        with: { config: .gitleaks.toml }
+        with:
+          config: .gitleaks.toml
+
       - name: Run unit & integration tests
         run: pnpm test:security
