@@ -39,8 +39,10 @@ jobs:
 
       - name: Run Gitleaks
         uses: zricethezav/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          config: .gitleaks.toml
+          args: detect --nogit --source --redact --config=.gitleaks.toml
 
       - name: Run unit & integration tests
         run: pnpm test:security
