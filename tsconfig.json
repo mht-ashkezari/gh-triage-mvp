@@ -13,11 +13,14 @@
     "emitDecoratorMetadata": true,
     "composite": true,
     "skipLibCheck": true,
+    "jsx": "react-jsx",
     "paths": {
       "@ghtriage/schemas/*": [
         "packages/schemas/src/*"
       ]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "moduleResolution": "node"
   }
 }
