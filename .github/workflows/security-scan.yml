@@ -11,10 +11,15 @@ on:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    permissions:
+      contents: read
+      pull-requests: read
 
-      - name: Setup Node 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -26,24 +31,24 @@ jobs:
           pnpm -v
 
       - name: Install dependencies
-        run: pnpm i
+        run: pnpm install --frozen-lockfile
 
-      - name: Run redaction scan
+      - name: Run redaction scan (PII validator)
         run: pnpm security:redact
 
-      - name: Run Trivy (OSS deps)
+      - name: Run Trivy (dependency vulnerability scan)
         uses: aquasecurity/trivy-action@0.16.1
         with:
           scan-type: fs
           severity: CRITICAL,HIGH
 
-      - name: Run Gitleaks
+      - name: Run Gitleaks (secret detection)
         uses: zricethezav/gitleaks-action@v2
-        with:
-          config-path: .gitleaks.toml
-          fail: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          args: detect --no-git --source . --redact --config=.gitleaks.toml
 
-      - name: Run unit & integration tests
+      - name: Run security unit & integration tests
         run: pnpm test:security
