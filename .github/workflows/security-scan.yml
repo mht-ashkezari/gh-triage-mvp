@@ -43,13 +43,12 @@ jobs:
           severity: CRITICAL,HIGH
 
       - name: Run Gitleaks (secret detection)
-        uses: zricethezav/gitleaks-action@v2
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
+          chmod +x gitleaks
+          ./gitleaks detect --no-git --redact --source . --config=.gitleaks.toml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          scan-dir: .
-          redact: true
-          config-path: .gitleaks.toml
 
       - name: Run security unit & integration tests
         run: pnpm test:security
