@@ -46,9 +46,10 @@ jobs:
         uses: zricethezav/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
         with:
-          args: detect --no-git --source . --redact --config=.gitleaks.toml
+          scan-dir: .
+          redact: true
+          config-path: .gitleaks.toml
 
       - name: Run security unit & integration tests
         run: pnpm test:security
