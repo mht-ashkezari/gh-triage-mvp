@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "predocs:typedoc": "pnpm -w --filter @ghtriage/schemas build",
     "docs:openapi": "pnpm --filter @ghtriage/contracts openapi",
     "docs:redoc": "mkdir -p docs/api && redoc-cli bundle docs/openapi/bff.openapi.json -o docs/api/bff.html && redoc-cli bundle docs/openapi/runs.openapi.json -o docs/api/runs.html",
     "docs:typedoc": "typedoc",
@@ -63,6 +64,7 @@
     "zod-to-json-schema": "^3.23.0"
   },
   "dependencies": {
+    "@ghtriage/schemas": "workspace:^",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
     "@nestjs/platform-express": "^11.1.6",

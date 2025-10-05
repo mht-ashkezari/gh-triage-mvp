@@ -13,11 +13,14 @@
     "emitDecoratorMetadata": true,
     "composite": true,
     "skipLibCheck": true,
+    "baseUrl": ".",
     "paths": {
+      "@ghtriage/schemas": [
+        "packages/schemas/src/index.ts"
+      ],
       "@ghtriage/schemas/*": [
         "packages/schemas/src/*"
       ]
     },
-    "baseUrl": "."
   }
 }
