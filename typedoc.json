@@ -11,5 +11,9 @@
     "excludeInternal": true,
     "githubPages": false,
     "readme": "none",
-    "tsconfig": "tsconfig.json"
+    "tsconfig": "tsconfig.json",
+    "exclude": [
+        "**/*.generate.ts",
+        "packages/contracts/src/jsonschema.generate.ts"
+    ]
 }
