@@ -33,7 +33,7 @@ jobs:
       # 3) Cache pnpm store
       - name: Determine pnpm store path
         id: pnpm-cache
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_ENV
+        run: echo "store_path=$(pnpm store path)" >> $GITHUB_OUTPUT
 
       - name: Restore pnpm cache
         uses: actions/cache@v4
