@@ -1,0 +1,70 @@
+%%{init: {
+  "securityLevel": "loose",
+  "themeVariables": { "fontFamily": "Inter, Roboto, Arial, sans-serif" }
+}}%%
+sequenceDiagram
+  %% Sequence View: A→E pipeline, with LEGEND-colored sections
+  autonumber
+
+  participant User as Maintainer / Trigger
+  participant Frontend as Frontend (Next.js)
+  participant BFF as BFF (NestJS)
+  participant Runs as Runs Service
+  participant ML as ML Microservices
+  participant SQL as SQL
+  participant Blob as Blob Storage
+  participant OTel as OTel Collector
+  participant GitHub as GitHub API
+  participant AzureAI as Azure OpenAI
+  participant Vault as Key Vault
+
+  %% ACTOR (blue)
+  rect rgba(207,232,255,0.35)
+    User->>Frontend: Click "Sync Repo"
+  end
+
+  %% INTERNAL SERVICES (green)
+  rect rgba(214,245,214,0.35)
+    Frontend->>BFF: POST /runs/start (installation_id)
+    BFF->>Vault: Fetch app credentials (scoped)
+    BFF->>Runs: Enqueue Run A
+  end
+
+%% EXTERNAL (yellow)
+rect rgba(255,242,179,0.35)
+  Runs->>GitHub: Fetch issues/PRs
+
+  opt Future
+    Runs->>AzureAI: model warm-up
+  end
+end
+  %% DATA (gray)
+  rect rgba(238,238,238,0.7)
+    Runs->>SQL: Save raw snapshot
+  end
+
+  %% INTERNAL + ML (green)
+  rect rgba(214,245,214,0.35)
+    Runs->>Runs: Trigger Run B (ML Baseline)
+    Runs->>ML: Predict labels / duplicates
+    ML-->>Runs: Predictions
+    Runs->>SQL: Persist predictions
+    Runs->>Runs: Trigger Run D (Release Pack)
+    Runs->>SQL: Read triage_cards
+    Runs->>ML: Summarize release notes
+    ML-->>Runs: Structured markdown
+    Runs->>SQL: Store summaries
+    Runs->>Blob: Store artifacts
+  end
+
+  %% OBSERVABILITY (teal)
+  rect rgba(213,245,246,0.45)
+    Runs->>OTel: Emit spans & metrics
+    BFF->>OTel: Emit spans & metrics
+    ML->>OTel: Emit spans & metrics
+  end
+
+  %% UI completion
+  Runs-->>BFF: Notify run complete
+  BFF-->>Frontend: SSE update (status: finished)
+  Frontend-->>User: Show summary dashboard
