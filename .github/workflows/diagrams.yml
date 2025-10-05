@@ -1,0 +1,37 @@
+name: Build Architecture Diagrams
+
+on:
+  push:
+    paths:
+      - "docs/arch/releases/**.mmd"
+      - "tooling/render_diagrams.sh"
+      - "tooling/check_component_ids.ts"
+  pull_request:
+    paths:
+      - "docs/arch/releases/**.mmd"
+
+jobs:
+  build-diagrams:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: pnpm i --frozen-lockfile
+
+      - name: Render versioned diagrams
+        run: pnpm diagrams:build
+
+      - name: Run component ID consistency check
+        run: pnpm diagrams:check
+
+      - name: Upload diagrams artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-diagrams-${{ github.ref_name || github.sha }}
+          path: docs/img/
