@@ -1,0 +1,46 @@
+%%{init: {
+  "securityLevel": "loose",
+  "flowchart": { "curve": "monotoneX", "nodeSpacing": 45, "rankSpacing": 60 },
+  "themeVariables": { "fontFamily": "Inter, Roboto, Arial, sans-serif" }
+}}%%
+flowchart TB
+
+subgraph K8sCluster["Kubernetes Cluster"]
+  subgraph Namespace["Namespace: gh-triage"]
+      Ingress["Ingress / Front Door"]
+      Frontend["Deployment: frontend (svc.frontend)"]
+      BFF["Deployment: bff (svc.bff)"]
+      Runs["Deployment: runs (svc.runs)"]
+      ML["Deployment: ml-service (svc.ml)"]
+      Bus["Service Bus / Redis (svc.bus)"]
+      Vault["Key Vault (CSI Mount) (svc.vault)"]
+      OTel["OpenTelemetry Collector (svc.otel)"]
+    end
+end
+
+style K8sCluster fill:transparent,stroke:#7c8db0,stroke-width:1px,stroke-dasharray:3 3
+style Namespace  fill:transparent,stroke:#94a3b8,stroke-width:1px,stroke-dasharray:3 3
+
+Ingress --> Frontend --> BFF --> Runs --> ML
+Runs --> Bus
+BFF  --> Vault
+Runs --> Vault
+ML   --> Vault
+Frontend --> OTel
+BFF      --> OTel
+Runs     --> OTel
+ML       --> OTel
+
+%% LEGEND styles
+classDef actor    fill:#cfe8ff,stroke:#4c84d3,color:#1f2937;
+classDef service  fill:#d6f5d6,stroke:#2f855a,color:#1f2937;
+classDef external fill:#fff2b3,stroke:#b7791f,color:#1f2937;
+classDef security fill:#e6d6ff,stroke:#6b46c1,color:#1f2937;
+classDef observ   fill:#d5f5f6,stroke:#0ea5a3,color:#1f2937;
+classDef data     fill:#eeeeee,stroke:#6b7280,color:#1f2937;
+
+%% Class mapping
+class Ingress,Frontend,BFF,Runs,ML service;
+class Vault security;
+class OTel observ;
+class Bus data;

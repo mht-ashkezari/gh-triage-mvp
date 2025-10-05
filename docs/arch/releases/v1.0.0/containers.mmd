@@ -1,0 +1,103 @@
+%%{init: {
+  "securityLevel": "loose",
+  "flowchart": { "curve": "monotoneX", "nodeSpacing": 45, "rankSpacing": 60 },
+  "themeVariables": { "fontFamily": "Inter, Roboto, Arial, sans-serif" }
+}}%%
+flowchart LR
+
+%% Legend styles
+classDef service  fill:#d6f5d6,stroke:#2f855a,color:#1f2937
+classDef security fill:#e6d6ff,stroke:#6b46c1,color:#1f2937
+classDef observ   fill:#d5f5f6,stroke:#0ea5a3,color:#1f2937
+classDef data     fill:#eeeeee,stroke:#6b7280,color:#1f2937
+
+%% Containers (left->right order)
+subgraph FrontendBox["Next.js Frontend - svc.frontend"]
+  direction TB
+  FEUI["Triage Board UI"]:::service
+end
+
+subgraph BFFBox["Backend-for-Frontend - svc.bff"]
+  direction TB
+  Auth["Auth and Repo Connect"]:::service
+  API["REST or GraphQL API"]:::service
+end
+
+subgraph RunsBox["Runs Orchestrator - svc.runs"]
+  direction TB
+  RunA["Run A: Sync"]:::service
+  RunB["Run B: ML Baselines"]:::service
+  RunD["Run D: Release Pack"]:::service
+end
+
+subgraph MLBox["ML Services - svc.ml"]
+  direction TB
+  Labeler["Labeler Service"]:::service
+  Priority["Priority Model"]:::service
+  Duplicates["Duplicate Detector"]:::service
+end
+
+subgraph Infra["Infrastructure Services"]
+  direction TB
+  SQL[(Azure SQL / Postgres)]:::data
+  Blob[(Blob Storage)]:::data
+  Bus[(Service Bus / Redis - svc.bus)]:::data
+  OTel["OTel Collector / App Insights - svc.otel"]:::observ
+  KeyVault["Key Vault - svc.vault"]:::security
+end
+
+%% Subgraph chrome
+style FrontendBox fill:transparent,stroke:#7c8db0,stroke-width:1px,stroke-dasharray:3 3
+style BFFBox     fill:transparent,stroke:#7c8db0,stroke-width:1px,stroke-dasharray:3 3
+style RunsBox    fill:transparent,stroke:#7c8db0,stroke-width:1px,stroke-dasharray:3 3
+style MLBox      fill:transparent,stroke:#7c8db0,stroke-width:1px,stroke-dasharray:3 3
+style Infra      fill:transparent,stroke:#7c8db0,stroke-width:1px,stroke-dasharray:3 3
+
+%% Flows
+FEUI --> API
+API  --> RunA
+
+RunA --> SQL
+RunA --> Blob
+RunA --> Bus
+RunA --> RunB
+
+RunB --> Labeler
+RunB --> Priority
+RunB --> Duplicates
+Labeler --> SQL
+Priority --> SQL
+Duplicates --> SQL
+
+RunD --> Blob
+RunD --> Bus
+RunD --> SQL
+RunD --> API
+
+API  --> FEUI
+
+%% Observability
+API       --> OTel
+RunA      --> OTel
+RunB      --> OTel
+RunD      --> OTel
+Labeler   --> OTel
+Priority  --> OTel
+Duplicates --> OTel
+
+%% Secrets
+Auth --> KeyVault
+RunA --> KeyVault
+RunB --> KeyVault
+RunD --> KeyVault
+
+
+%% Clickable links (replace ORG/REPO/BRANCH)
+click FEUI "https://github.com/ORG/REPO/tree/BRANCH/apps/frontend"
+click API "https://github.com/ORG/REPO/tree/BRANCH/apps/bff"
+click RunA "https://github.com/ORG/REPO/tree/BRANCH/apps/runs"
+click RunB "https://github.com/ORG/REPO/tree/BRANCH/apps/runs"
+click RunD "https://github.com/ORG/REPO/tree/BRANCH/apps/runs"
+click Labeler "https://github.com/ORG/REPO/tree/BRANCH/apps/ml"
+click Priority "https://github.com/ORG/REPO/tree/BRANCH/apps/ml"
+click Duplicates "https://github.com/ORG/REPO/tree/BRANCH/apps/ml"
