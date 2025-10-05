@@ -13,6 +13,10 @@
         "./datasets/snapshot": {
             "import": "./dist/datasets/snapshot.js",
             "types": "./dist/datasets/snapshot.d.ts"
+        },
+        "./*": {
+            "types": "./dist/*.d.ts",
+            "import": "./dist/*.js"
         }
     },
     "files": [
