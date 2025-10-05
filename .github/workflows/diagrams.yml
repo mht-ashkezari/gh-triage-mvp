@@ -38,9 +38,10 @@ jobs:
       - name: Restore pnpm cache
         uses: actions/cache@v4
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          path: ${{ steps.pnpm-cache.outputs.store_path }} # FIXED: use env instead of outputs
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-store-
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       # 4) Install deps
       - name: Install dependencies
