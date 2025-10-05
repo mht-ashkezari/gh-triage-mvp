@@ -11,6 +11,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ARCH_DIR="${ROOT_DIR}/docs/arch"
 IMG_DIR="${ROOT_DIR}/docs/img"
+P_CFG="${ROOT_DIR}/tooling/puppeteer-config.json"
 
 # Prefer releases/ if it exists, else use arch root
 if [ -d "${ARCH_DIR}/releases" ]; then
@@ -43,7 +44,7 @@ for VERSION_PATH in "${BASE_DIR}"/v*/; do
     OUT="${OUT_DIR}/${NAME}.svg"
     if [ -f "${SRC}" ]; then
       echo "   Rendering ${NAME}.mmd ..."
-      mmdc -i "${SRC}" -o "${OUT}"
+      mmdc -p "${P_CFG}" -i "${SRC}" -o "${OUT}"
     else
       echo "   ⚠️  Missing: ${SRC} (skipped)"
     fi
