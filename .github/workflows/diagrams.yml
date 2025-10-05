@@ -38,10 +38,9 @@ jobs:
       - name: Restore pnpm cache
         uses: actions/cache@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-store-
 
       # 4) Install deps
       - name: Install dependencies
@@ -54,9 +53,17 @@ jobs:
       - name: Run component ID consistency check
         run: pnpm diagrams:check
 
+      # NEW: slug the branch name for artifact name
+      - name: Set safe artifact name
+        run: |
+          SAFE_BRANCH="${GITHUB_REF_NAME//\//-}"
+          echo "ART_NAME=arch-diagrams-${SAFE_BRANCH:-${GITHUB_SHA}}" >> "$GITHUB_ENV"
+
       # 6) Upload SVGs
       - name: Upload diagrams artifact
         uses: actions/upload-artifact@v4
         with:
-          name: arch-diagrams-${{ github.ref_name || github.sha }}
+          name: ${{ env.ART_NAME }}
           path: docs/img/
+          if-no-files-found: error
+          compression-level: 6
