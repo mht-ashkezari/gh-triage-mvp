@@ -1,9 +1,7 @@
 import fs from "node:fs";
 import { z, type ZodTypeAny } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import * as entities from "@ghtriage/schemas/src/entities.js";
-import * as common from "@ghtriage/schemas/src/common.js";
-
+import { entities, common } from "@ghtriage/schemas";
 fs.mkdirSync("docs/jsonschema", { recursive: true });
 
 /** Type guard: is this value a Zod schema instance? */

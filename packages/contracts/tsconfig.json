@@ -2,16 +2,16 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "composite": true,
+        "baseUrl": "../../",
         "declaration": true,
         "rootDir": "src",
         "outDir": "dist",
-        "baseUrl": ".",
         "paths": {
             "@ghtriage/schemas": [
-                "../schemas/src/index.ts"
+                "packages/schemas/src/index.ts"
             ],
             "@ghtriage/schemas/*": [
-                "../schemas/src/*"
+                "packages/schemas/src/*"
             ]
         }
     },
@@ -21,6 +21,6 @@
         }
     ],
     "include": [
-        "src/**/*.ts"
+        "src"
     ]
 }

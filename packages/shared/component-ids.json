@@ -1,0 +1,9 @@
+{
+    "frontend": "svc.frontend",
+    "bff": "svc.bff",
+    "runs": "svc.runs",
+    "ml": "svc.ml",
+    "bus": "svc.bus",
+    "vault": "svc.vault",
+    "otel": "svc.otel"
+}

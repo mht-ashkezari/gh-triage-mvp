@@ -1,0 +1,56 @@
+%%{init: {
+  "securityLevel": "loose",
+  "flowchart": { "curve": "monotoneX", "nodeSpacing": 45, "rankSpacing": 60 },
+  "themeVariables": { "fontFamily": "Inter, Roboto, Arial, sans-serif" }
+}}%%
+flowchart LR
+
+%% Legend classes (keep first; strict renderers prefer this order)
+classDef actor    fill:#cfe8ff,stroke:#4c84d3,color:#1f2937
+classDef service  fill:#d6f5d6,stroke:#2f855a,color:#1f2937
+classDef external fill:#fff2b3,stroke:#b7791f,color:#1f2937
+classDef security fill:#e6d6ff,stroke:#6b46c1,color:#1f2937
+classDef observ   fill:#d5f5f6,stroke:#0ea5a3,color:#1f2937
+
+%% External actor & dependencies
+user["Developer / Maintainer"]:::actor
+extGH["GitHub API"]:::external
+extAI["Azure OpenAI"]:::external
+
+%% System boundary (internal services)
+subgraph System["gh-triage system"]
+  frontend["Frontend - svc.frontend"]:::service
+  bff["BFF - svc.bff"]:::service
+  runs["Runs Service - svc.runs"]:::service
+  ml["ML Service - svc.ml"]:::service
+  otel["OTel Collector - svc.otel"]:::observ
+  vault["Key Vault - svc.vault"]:::security
+
+  %% core internal flows
+  frontend --> bff
+  bff --> runs
+  runs --> ml
+  bff --> otel
+  runs -->|Spans and Metrics| otel
+  ml  --> otel
+
+  %% secrets / keys
+  bff --> vault
+  runs --> vault
+  ml  --> vault
+end
+
+%% Visual boundary style
+style System fill:transparent,stroke:#7c8db0,stroke-width:1px,stroke-dasharray:3 3
+
+%% External interactions
+user --> frontend
+bff  -->|Calls| extGH
+runs -->|Sync Run A| extGH
+runs -->|Invokes| extAI
+
+%% Clickable links (replace ORG/REPO/BRANCH)
+click frontend "https://github.com/ORG/REPO/tree/BRANCH/apps/frontend"
+click bff "https://github.com/ORG/REPO/tree/BRANCH/apps/bff"
+click runs "https://github.com/ORG/REPO/tree/BRANCH/apps/runs"
+click ml "https://github.com/ORG/REPO/tree/BRANCH/apps/ml"

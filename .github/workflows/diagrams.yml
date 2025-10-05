@@ -1,0 +1,70 @@
+# .github/workflows/diagrams.yml
+name: Build Architecture Diagrams
+
+on:
+  push:
+    paths:
+      - "docs/arch/releases/**.mmd"
+      - "tooling/render_diagrams.sh"
+      - "tooling/check_component_ids.ts"
+  pull_request:
+    paths:
+      - "docs/arch/releases/**.mmd"
+
+jobs:
+  build-diagrams:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1) Node first (NO pnpm cache here)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 2) Install pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+          run_install: false
+
+      # 3) Cache pnpm store
+      - name: Determine pnpm store path
+        id: pnpm-cache
+        run: echo "store_path=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.store_path }} # FIXED: use env instead of outputs
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # 4) Install deps
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 5) Build & validate diagrams
+      - name: Render versioned diagrams
+        run: pnpm diagrams:build
+
+      - name: Run component ID consistency check
+        run: pnpm diagrams:check
+
+      # NEW: slug the branch name for artifact name
+      - name: Set safe artifact name
+        run: |
+          SAFE_BRANCH="${GITHUB_REF_NAME//\//-}"
+          echo "ART_NAME=arch-diagrams-${SAFE_BRANCH:-${GITHUB_SHA}}" >> "$GITHUB_ENV"
+
+      # 6) Upload SVGs
+      - name: Upload diagrams artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ART_NAME }}
+          path: docs/img/
+          if-no-files-found: error
+          compression-level: 6
