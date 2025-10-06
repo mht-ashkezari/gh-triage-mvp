@@ -97,10 +97,12 @@ infra/**/crash.*.log
 # --- Docs (if you generate docs, ignore the output) ---
 docs/api/
 # 
-/scripts    
-/_snapshots                
 
-package.json.bak
+/_snapshots
+/scripts
+/scripts/**
+*.local.*
+
 /cli/
 
 # === dataset raw payloads  ===

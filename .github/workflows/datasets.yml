@@ -39,7 +39,7 @@ jobs:
         run: pnpm -w --filter @ghtriage/tools-snapshot typecheck
       - name: Manifest schema check
         run: |
-          node apps/tools/snapshot/scripts/manifest-check.cjs datasets/snapshots/manifest.yaml
+          node tooling/data/snapshot/manifest-check.cjs datasets/snapshots/manifest.yaml
 
       - name: Ensure raw/ is not committed
         run: |
