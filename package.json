@@ -31,7 +31,7 @@
     "diagrams:watch": "nodemon --ext mmd --watch docs/arch/releases --exec \"pnpm diagrams:build && pnpm diagrams:check\"",
     "repo:layout:check": "node tooling/ci/check-layout.cjs",
     "repo:tree": "node tooling/ci/print-tree.cjs",
-    "build": "turbo run build --filter=...[origin/main]",
+    "build": "turbo run build --filter=...[origin/main] || turbo run build",
     "test": "turbo run test --filter=...[origin/main]",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
