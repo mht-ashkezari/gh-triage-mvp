@@ -1,54 +1,65 @@
 name: Contracts
 
 on:
-    push:
-        branches: [main]
-    pull_request:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
-    contents: read
+  contents: read
 
 jobs:
-    build-contracts:
-        runs-on: ubuntu-latest
-        timeout-minutes: 12
-        steps:
-            - uses: actions/checkout@v4
+  build-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 20
-                  cache: pnpm
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Enable Corepack + pnpm
-              run: |
-                  corepack enable
-                  corepack prepare pnpm@9.12.0 --activate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+      # Enable Corepack and ensure pnpm is active
+      - name: Enable Corepack & activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.12.0 --activate
+          echo "pnpm version:"
+          pnpm -v
 
-            - name: Build schema & contracts packages
-              run: |
-                  pnpm -F @ghtriage/schemas build
-                  pnpm -F @ghtriage/contracts build
+      # Install dependencies
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-            - name: Generate OpenAPI + JSON Schema
-              run: |
-                  pnpm contracts:openapi
-                  pnpm contracts:jsonschema
+      # Build both schema and contracts packages
+      - name: Build schemas and contracts
+        run: |
+          pnpm -F @ghtriage/schemas build
+          pnpm -F @ghtriage/contracts build
 
-            - name: Lint OpenAPI (Redocly)
-              run: pnpm contracts:lint
+      # Generate OpenAPI + JSON Schema
+      - name: Generate OpenAPI + JSON Schema
+        run: |
+          pnpm contracts:openapi
+          pnpm contracts:jsonschema
 
-            - name: Run contract/unit tests
-              run: pnpm test:contracts
+      # Lint OpenAPI definitions (Redocly)
+      - name: Lint OpenAPI (Redocly)
+        run: pnpm contracts:lint
 
-            - name: Upload contract artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: contracts-artifacts
-                  path: |
-                      docs/openapi/*.json
-                      docs/jsonschema/*.json
-                  if-no-files-found: error
+      # Run contract tests
+      - name: Run contract/unit tests
+        run: pnpm test:contracts
+
+      # Upload contract artifacts for later jobs or inspection
+      - name: Upload contract artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: contracts-artifacts
+          path: |
+            docs/openapi/*.json
+            docs/jsonschema/*.json
+          if-no-files-found: error
