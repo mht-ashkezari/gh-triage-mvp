@@ -1,0 +1,33 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "composite": true,
+        "declaration": true,
+        "declarationMap": true,
+        "emitDeclarationOnly": false,
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "target": "ES2022",
+        "strict": true,
+        "skipLibCheck": true,
+        "baseUrl": "../../",
+        "paths": {
+            "@ghtriage/contracts": [
+                "packages/contracts/src/index.ts"
+            ],
+            "@ghtriage/contracts/*": [
+                "packages/contracts/src/*"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "references": [
+        {
+            "path": "../contracts"
+        }
+    ]
+}
