@@ -15,14 +15,16 @@ jobs:
     timeout-minutes: 12
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Step 1: Set up Node without cache
-      - uses: actions/setup-node@v4
+      # Set up Node.js (NO pnpm cache here!)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # Step 2: Enable Corepack & activate pnpm
+      # Enable Corepack and activate pnpm
       - name: Enable Corepack & activate pnpm
         run: |
           corepack enable
@@ -30,7 +32,7 @@ jobs:
           echo "pnpm version:"
           pnpm -v
 
-      # Step 3: Set up pnpm cache
+      # Set up pnpm cache
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
@@ -39,31 +41,31 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
-      # Step 4: Install dependencies
+      # Install dependencies
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Step 5: Build schema & contracts
+      # Build schemas and contracts
       - name: Build schemas and contracts
         run: |
           pnpm -F @ghtriage/schemas build
           pnpm -F @ghtriage/contracts build
 
-      # Step 6: Generate artifacts
+      # Generate OpenAPI + JSON Schema
       - name: Generate OpenAPI + JSON Schema
         run: |
           pnpm contracts:openapi
           pnpm contracts:jsonschema
 
-      # Step 7: Lint OpenAPI
+      # Lint OpenAPI (Redocly)
       - name: Lint OpenAPI (Redocly)
         run: pnpm contracts:lint
 
-      # Step 8: Run tests
+      # Run contract/unit tests
       - name: Run contract/unit tests
         run: pnpm test:contracts
 
-      # Step 9: Upload artifacts
+      # Upload contract artifacts
       - name: Upload contract artifacts
         uses: actions/upload-artifact@v4
         with:
