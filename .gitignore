@@ -129,3 +129,6 @@ datasets/**/.cache/
 
 
 
+
+# build artifacts
+/docs/site-docs.zip

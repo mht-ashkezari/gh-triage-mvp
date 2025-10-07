@@ -2,10 +2,15 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "composite": true,
-        "baseUrl": "../../",
         "declaration": true,
         "rootDir": "src",
         "outDir": "dist",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "target": "ES2022",
+        "strict": true,
+        "skipLibCheck": true,
+        "baseUrl": "../../",
         "paths": {
             "@ghtriage/schemas": [
                 "packages/schemas/src/index.ts"

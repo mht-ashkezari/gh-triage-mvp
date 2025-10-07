@@ -1,0 +1,41 @@
+{
+  "$ref": "#/definitions/ReleaseItem",
+  "definitions": {
+    "ReleaseItem": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "link": {
+          "type": "string",
+          "format": "uri"
+        },
+        "group": {
+          "type": "string",
+          "enum": [
+            "feature",
+            "fix",
+            "breaking",
+            "docs",
+            "chore"
+          ]
+        },
+        "thanks_to": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "title",
+        "link",
+        "group"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

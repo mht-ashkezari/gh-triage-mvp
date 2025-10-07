@@ -1,5 +1,5 @@
 {
-    "name": "@ghtriage/contracts",
+    "name": "@ghtriage/clients",
     "version": "0.0.1",
     "private": true,
     "type": "module",
@@ -16,24 +16,23 @@
             "default": "./dist/index.js"
         },
         "./bff": {
-            "types": "./dist/bff.contract.d.ts",
-            "import": "./dist/bff.contract.js",
-            "default": "./dist/bff.contract.js"
+            "types": "./dist/bff.client.d.ts",
+            "import": "./dist/bff.client.js",
+            "default": "./dist/bff.client.js"
         },
         "./runs": {
-            "types": "./dist/runs.contract.d.ts",
-            "import": "./dist/runs.contract.js",
-            "default": "./dist/runs.contract.js"
+            "types": "./dist/runs.client.d.ts",
+            "import": "./dist/runs.client.js",
+            "default": "./dist/runs.client.js"
         }
     },
     "scripts": {
         "build": "tsc -p tsconfig.json",
-        "clean": "rimraf dist",
-        "openapi": "tsx src/openapi.generate.ts",
-        "jsonschema": "tsx src/jsonschema.generate.ts"
+        "clean": "rimraf dist"
     },
     "dependencies": {
-        "@ts-rest/core": "^3.52.1"
+        "@ts-rest/core": "^3.52.1",
+        "@ghtriage/contracts": "workspace:*"
     },
     "devDependencies": {
         "typescript": "^5.6.3",
