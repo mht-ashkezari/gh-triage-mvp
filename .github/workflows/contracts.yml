@@ -1,54 +1,76 @@
 name: Contracts
 
 on:
-    push:
-        branches: [main]
-    pull_request:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
-    contents: read
+  contents: read
 
 jobs:
-    build-contracts:
-        runs-on: ubuntu-latest
-        timeout-minutes: 12
-        steps:
-            - uses: actions/checkout@v4
+  build-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 20
-                  cache: pnpm
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Enable Corepack + pnpm
-              run: |
-                  corepack enable
-                  corepack prepare pnpm@9.12.0 --activate
+      # Set up Node.js (NO pnpm cache here!)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+      # Enable Corepack and activate pnpm
+      - name: Enable Corepack & activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.12.0 --activate
+          echo "pnpm version:"
+          pnpm -v
 
-            - name: Build schema & contracts packages
-              run: |
-                  pnpm -F @ghtriage/schemas build
-                  pnpm -F @ghtriage/contracts build
+      # Set up pnpm cache
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
-            - name: Generate OpenAPI + JSON Schema
-              run: |
-                  pnpm contracts:openapi
-                  pnpm contracts:jsonschema
+      # Install dependencies
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-            - name: Lint OpenAPI (Redocly)
-              run: pnpm contracts:lint
+      # Build schemas and contracts
+      - name: Build schemas and contracts
+        run: |
+          pnpm -F @ghtriage/schemas build
+          pnpm -F @ghtriage/contracts build
 
-            - name: Run contract/unit tests
-              run: pnpm test:contracts
+      # Generate OpenAPI + JSON Schema
+      - name: Generate OpenAPI + JSON Schema
+        run: |
+          pnpm contracts:openapi
+          pnpm contracts:jsonschema
 
-            - name: Upload contract artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: contracts-artifacts
-                  path: |
-                      docs/openapi/*.json
-                      docs/jsonschema/*.json
-                  if-no-files-found: error
+      # Lint OpenAPI (Redocly)
+      - name: Lint OpenAPI (Redocly)
+        run: pnpm contracts:lint
+
+      # Run contract/unit tests
+      - name: Run contract/unit tests
+        run: pnpm test:contracts
+
+      # Upload contract artifacts
+      - name: Upload contract artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: contracts-artifacts
+          path: |
+            docs/openapi/*.json
+            docs/jsonschema/*.json
+          if-no-files-found: error
