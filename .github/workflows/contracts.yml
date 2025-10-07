@@ -3,7 +3,23 @@ name: Contracts
 on:
   push:
     branches: [main]
+    paths:
+      - "packages/contracts/**"
+      - "packages/schemas/**"
+      - "docs/openapi/**"
+      - "docs/jsonschema/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/contracts.yml"
   pull_request:
+    paths:
+      - "packages/contracts/**"
+      - "packages/schemas/**"
+      - "docs/openapi/**"
+      - "docs/jsonschema/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/contracts.yml"
 
 permissions:
   contents: read
@@ -50,12 +66,12 @@ jobs:
       - name: Run contract/unit tests
         run: pnpm test:contracts
 
-      - name: Upload contract artifacts (push only)
-        if: github.event_name == 'push'
+      - name: Upload contract artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: contracts-artifacts
+          name: contracts-artifacts-${{ github.sha }}
           path: |
             docs/openapi/*.json
             docs/jsonschema/*.json
           if-no-files-found: error
+          retention-days: 7
