@@ -1,0 +1,8 @@
+name: Integration
+on:
+    pull_request:
+jobs:
+    api-smoke:
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo "Integration tests will run once BFF/Run services are bootable (future steps)."

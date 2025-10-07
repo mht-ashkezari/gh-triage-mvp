@@ -1,0 +1,16 @@
+apis:
+  bff:
+    root: docs/openapi/bff.openapi.json
+  runs:
+    root: docs/openapi/runs.openapi.json
+
+extends:
+  - recommended
+
+rules:
+  no-empty-servers: off
+  operation-summary: off
+  security-defined: off
+  operation-operationId: warn
+  operation-4xx-response: warn
+  info-license: warn
