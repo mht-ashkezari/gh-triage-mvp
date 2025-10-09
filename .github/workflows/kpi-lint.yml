@@ -35,6 +35,11 @@ jobs:
       - name: (opt) build schema
         run: pnpm run --if-present schema:kpi
 
+      - name: Build CLI
+        run: |
+          pnpm -w --filter @ghtriage/kpi-spec build
+          pnpm -w --filter @ghtriage/cli build
+
       - name: Validate KPIs (CLI)
         run: pnpm kpi:check
 

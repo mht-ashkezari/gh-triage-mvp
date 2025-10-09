@@ -9,7 +9,7 @@ export default defineConfig({
       {
         test: {
           name: 'root',
-          include: ['test/**/*.spec.ts'],
+          include: ['tests/**/*.spec.ts'],
           setupFiles: ['./vitest.setup.ts'],
           environment: 'node',
         }
