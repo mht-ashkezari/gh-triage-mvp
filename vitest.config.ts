@@ -30,6 +30,14 @@ export default defineConfig({
           include: ['packages/contracts/test/**/*.spec.ts'],
         },
       },
+      {
+        test: {
+          name: 'bff',
+          environment: 'node',
+          setupFiles: ['./vitest.setup.ts'],
+          include: ['apps/bff/test/**/*.spec.ts'],
+        },
+      },
     ],
   },
 });
