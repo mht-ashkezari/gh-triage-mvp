@@ -132,3 +132,6 @@ datasets/**/.cache/
 
 # build artifacts
 /docs/site-docs.zip
+
+# build/pack artefacts
+gh-triage-mvp@*.*/

@@ -9,7 +9,7 @@ export default defineConfig({
       {
         test: {
           name: 'root',
-          include: ['test/**/*.spec.ts'],
+          include: ['tests/**/*.spec.ts'],
           setupFiles: ['./vitest.setup.ts'],
           environment: 'node',
         }
@@ -28,6 +28,14 @@ export default defineConfig({
           environment: 'node',
           setupFiles: ['./vitest.setup.ts'],
           include: ['packages/contracts/test/**/*.spec.ts'],
+        },
+      },
+      {
+        test: {
+          name: 'bff',
+          environment: 'node',
+          setupFiles: ['./vitest.setup.ts'],
+          include: ['apps/bff/test/**/*.spec.ts'],
         },
       },
     ],

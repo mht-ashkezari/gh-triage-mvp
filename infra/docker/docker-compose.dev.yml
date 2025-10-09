@@ -1,0 +1,98 @@
+name: gh-triage-dev
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: triage
+    ports: [ "55432:5432" ]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d triage"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [ devnet ]
+
+  redis:
+    image: redis:7
+    ports: [ "6379:6379" ]
+    command: ["redis-server", "--save", "''", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [ devnet ]
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: ["azurite", "--blobHost", "0.0.0.0"]
+    ports: [ "10000:10000", "10001:10001" ]
+    volumes:
+      - azurite:/data
+    networks: [ devnet ]
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    command: ["--config=/etc/otel-collector.yaml"]
+    volumes:
+      - ./otel-collector.yaml:/etc/otel-collector.yaml:ro
+    ports: [ "4317:4317", "4318:4318" ] # OTLP gRPC/HTTP
+    networks: [ devnet ]
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:4317"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    depends_on: { jaeger: { condition: service_started } }
+
+  jaeger:
+    image: jaegertracing/all-in-one:1
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports: [ "16686:16686", "14250:14250" ] # UI, gRPC
+    networks: [ devnet ]
+
+  # ---- Optional profiles ----
+  cosmos:
+    profiles: [ "cosmos" ]
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+    environment:
+      AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: "true"
+      AZURE_COSMOS_EMULATOR_PARTITION_COUNT: 4
+      AZURE_COSMOS_EMULATOR_ENABLE_VECTOR_INDEXES: "false"
+      ACCEPT_EULA: "Y"
+    ports: [ "8081:8081" ]
+    networks: [ devnet ]
+    # Note: heavy; run only when needed
+
+  qdrant:
+    profiles: [ "vector" ]
+    image: qdrant/qdrant:latest
+    ports: [ "6333:6333" ]
+    volumes:
+      - qdrant:/qdrant/storage
+    networks: [ devnet ]
+
+  llm-mock:
+    profiles: ["llm"]
+    image: wiremock/wiremock:latest 
+    command: ["--verbose", "--global-response-templating"]
+    ports: ["8080:8080"]
+    volumes:
+      - ./wiremock/mappings:/home/wiremock/mappings:ro
+    networks: [devnet]
+
+volumes:
+  pgdata: {}
+  azurite: {}
+  qdrant: {}
+
+networks:
+  devnet:
+    driver: bridge
