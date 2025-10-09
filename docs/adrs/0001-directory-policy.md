@@ -8,13 +8,13 @@ Developers may still create personal or experimental scripts locally, but these 
 
 ## Decision
 - All **committed** helper utilities live under `/tooling/{ci,dev,data}/**`.
-- **Local development or scratch scripts** (for experiments, one-off snapshots, etc.) may exist outside version control—for example, in a personal `/scripts/**` directory—but:
+- **Local development or scratch scripts** (for experiments, one-off snapshots, etc.) may exist outside version control—for example, in a **developer-local scratch folder** — but:
   - They must **never be tracked** in Git.
   - They must **never be referenced** by any tracked files (e.g., `package.json`, CI workflows, or documentation).
 
 ## Consequences
 - The CI guard enforces this policy by checking that:
-  1. No tracked files exist under `/scripts/**`.
-  2. No tracked files reference `/scripts/` in their contents.
+  1. No tracked files exist under `/[developer-local scratch folder]/**`.
+  2. No tracked files reference `/[developer-local scratch folder]/` in their contents.
 - Official documentation and code examples reference **`/tooling/**`** as the sole location for repository-managed helpers.
 - Contributors retain flexibility for private experimentation while ensuring the shared repository remains deterministic, portable, and compliant with governance standards.

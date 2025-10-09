@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "private": true,
     "bin": {
-        "ghtriage": "dist/index.js"
+        "ghtriage": "bin/ghtriage.js"
     },
     "scripts": {
         "build": "tsc -p tsconfig.json",
@@ -12,14 +12,18 @@
         "kpi:check": "ts-node src/commands/kpi-check.ts",
         "kpi:schema": "ts-node src/commands/kpi-schema.ts"
     },
+    "files": [
+        "dist",
+        "bin"
+    ],
     "dependencies": {
+        "@ghtriage/kpi-spec": "workspace:^",
         "@octokit/app": "^14.0.0",
         "@octokit/plugin-paginate-rest": "^11.0.0",
         "@octokit/rest": "^20.0.0",
         "csv-writer": "^1.6.0",
         "p-limit": "^6.0.0",
-        "yaml": "^2.5.0",
-        "@ghtriage/kpi-spec": "workspace:*"
+        "yaml": "^2.5.0"
     },
     "devDependencies": {
         "@types/node": "^20.11.0",

@@ -25,3 +25,5 @@ jobs:
             - run: pnpm i --frozen-lockfile
             # Run full dataset pipeline instead of just tests
             - run: make -C apps/mlops/samplers datasets-all ONLY=microsoft__vscode MAX_PAGES=4
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

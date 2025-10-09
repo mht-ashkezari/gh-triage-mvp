@@ -1,0 +1,71 @@
+# yamllint disable rule:line-length rule:truthy
+---
+name: DEVSTACK integration (local services)
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          npm i -g pnpm@9
+          pnpm i --frozen-lockfile
+
+      - name: Build CLI (optional smoke build)
+        run: |
+          pnpm -r --filter @ghtriage/kpi-spec run build
+          pnpm -r --filter @ghtriage/cli run build
+          # Run a command that returns 0 to prove the bin works
+          pnpm -w exec ghtriage kpi schema > /dev/null
+
+      - name: Start core stack
+        run: |
+          docker compose -f infra/docker/docker-compose.dev.yml up -d \
+            postgres redis azurite otel-collector jaeger
+
+      - name: Wait for services (pg_isready + Redis port)
+        shell: bash
+        run: |
+          for i in {1..60}; do
+            if docker exec gh-triage-dev-postgres-1 pg_isready -U postgres -d triage; then
+              echo "Postgres is ready"; break
+            fi
+            sleep 1
+          done
+
+          for i in {1..60}; do
+            (echo > /dev/tcp/127.0.0.1/6379) >/dev/null 2>&1 && { echo "Redis is ready"; break; }
+            sleep 1
+          done
+
+      - name: Run sanity tests
+        env:
+          DATABASE_URL: postgresql://postgres:devpass@localhost:55432/triage
+          REDIS_URL: redis://localhost:6379
+        run: pnpm test:devstack
+
+      - name: Collect compose logs
+        if: always()
+        run: docker compose -f infra/docker/docker-compose.dev.yml logs --no-color > devstack.log
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ env.ACT != 'true' }}
+        with:
+          name: devstack-logs
+          path: devstack.log
+          if-no-files-found: ignore
+
+      - name: Stop stack
+        if: always()
+        run: docker compose -f infra/docker/docker-compose.dev.yml down -v
