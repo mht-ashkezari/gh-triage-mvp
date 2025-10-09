@@ -5,6 +5,11 @@
             "dependsOn": [
                 "^build"
             ],
+            "inputs": [
+                "src/**",
+                "tsconfig.json",
+                "package.json"
+            ],
             "outputs": [
                 "dist/**",
                 ".next/**"
@@ -14,11 +19,34 @@
             "dependsOn": [
                 "build"
             ],
+            "inputs": [
+                "src/**",
+                "vitest.config.*",
+                "vitest.setup.*",
+                "package.json"
+            ],
             "outputs": [
                 ".coverage/**"
+            ],
+            "cache": false
+        },
+        "lint": {
+            "inputs": [
+                "src/**",
+                ".eslintrc.*",
+                "package.json"
             ]
         },
-        "lint": {},
-        "typecheck": {}
+        "typecheck": {
+            "dependsOn": [
+                "build"
+            ],
+            "inputs": [
+                "src/**",
+                "tsconfig.*",
+                "package.json"
+            ],
+            "outputs": []
+        }
     }
 }
