@@ -31,9 +31,11 @@ jobs:
       - name: Install deps
         run: pnpm i --frozen-lockfile
 
-      # Optional: only if you actually generate the schema in CI
-      - name: (opt) build schema
-        run: pnpm run --if-present schema:kpi
+      - name: Build core schemas dependencies
+        run: |
+          pnpm -w --filter @ghtriage/contracts build
+          pnpm -w --filter @ghtriage/schemas build
+          pnpm -w --filter @ghtriage/kpi-spec build
 
       - name: Build CLI
         run: |
