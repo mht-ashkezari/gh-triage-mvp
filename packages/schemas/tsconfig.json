@@ -5,7 +5,6 @@
         "moduleResolution": "Bundler",
         "declaration": true,
         "declarationMap": true,
-        "emitDeclarationOnly": false,
         "stripInternal": true,
         "rootDir": "src",
         "outDir": "dist",
