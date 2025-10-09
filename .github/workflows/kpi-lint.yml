@@ -36,6 +36,7 @@ jobs:
           pnpm -w --filter @ghtriage/contracts build
           pnpm -w --filter @ghtriage/schemas build
           pnpm -w --filter @ghtriage/kpi-spec build
+          pnpm -w --filter @ghtriage/cli build
 
       - name: Build CLI
         run: |
