@@ -8,7 +8,7 @@ on:
       - "docs/api/**"
       - "docs/site-docs.zip"
       - "datasets/snapshots/**"
-      - ".github/workflows/**" # specialized workflows handle themselves
+      - ".github/workflows/**"
   push:
     branches: [main]
     paths-ignore:
@@ -50,6 +50,9 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+
+      - name: Prebuild schemas (fix TS2307 workspace resolution)
+        run: pnpm -F @ghtriage/schemas build
 
       - name: Typecheck
         run: pnpm typecheck
