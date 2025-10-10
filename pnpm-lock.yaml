@@ -281,6 +281,9 @@ importers:
 
   packages/contracts:
     dependencies:
+      '@ghtriage/schemas':
+        specifier: workspace:*
+        version: link:../schemas
       '@ts-rest/core':
         specifier: ^3.52.1
         version: 3.52.1(@types/node@24.7.0)(zod@3.25.76)
