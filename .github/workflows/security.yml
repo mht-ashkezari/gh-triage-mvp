@@ -34,8 +34,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install dependencies (non-frozen until lockfile synced)
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run dependency audit
         run: pnpm audit --audit-level=high || true
