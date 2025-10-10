@@ -28,7 +28,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
 
       - name: Ensure main exists for Turbo filter
         run: git fetch origin main:refs/remotes/origin/main --depth=1 || true
@@ -36,8 +37,8 @@ jobs:
       - name: Setup Node 20 + pnpm cache
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "pnpm"
+          node-version: 20
+          cache: pnpm
 
       - name: Enable Corepack & pnpm
         run: |
@@ -46,7 +47,7 @@ jobs:
           pnpm -v
 
       - name: Install deps (frozen on main)
-        run: pnpm i ${{ github.ref == 'refs/heads/main' && '--frozen-lockfile' || '--no-frozen-lockfile' }}
+        run: pnpm install ${{ github.ref == 'refs/heads/main' && '--frozen-lockfile' || '--no-frozen-lockfile' }}
 
       - name: Lint
         run: pnpm lint
@@ -57,7 +58,6 @@ jobs:
       - name: Build changed graph
         run: pnpm build
 
-      # Fast unit-ish slice with coverage (schemas + contracts + root tests)
       - name: Tests (fast) with coverage
         run: pnpm ci:test
 
