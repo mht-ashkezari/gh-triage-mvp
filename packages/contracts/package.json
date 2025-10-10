@@ -24,6 +24,14 @@
             "types": "./dist/runs.contract.d.ts",
             "import": "./dist/runs.contract.js",
             "default": "./dist/runs.contract.js"
+        },
+        "./jsonschema": {
+            "import": "./dist/jsonschema.generate.js",
+            "default": "./dist/jsonschema.generate.js"
+        },
+        "./openapi": {
+            "import": "./dist/openapi.generate.js",
+            "default": "./dist/openapi.generate.js"
         }
     },
     "scripts": {
@@ -33,6 +41,7 @@
         "jsonschema": "tsx src/jsonschema.generate.ts"
     },
     "dependencies": {
+        "@ghtriage/schemas": "workspace:*",
         "@ts-rest/core": "^3.52.1"
     },
     "devDependencies": {

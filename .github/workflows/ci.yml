@@ -54,6 +54,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Prebuild schemas (fix TS2307 workspace resolution)
+        run: pnpm -F @ghtriage/schemas build
+
       - name: Build changed graph
         run: pnpm build
 
