@@ -1,19 +1,51 @@
-import { describe, it, expect } from "vitest";
-import { Client } from "pg";
-import Redis from "ioredis";
+import { describe, it, expect } from 'vitest';
+import { Client } from 'pg';
+import Redis from 'ioredis';
 
-describe("DEVSTACK sanity", () => {
-    it("connects to Postgres", async () => {
-        const c = new Client({ connectionString: process.env.DATABASE_URL });
-        await c.connect();
-        await c.query("select 1");
-        await c.end();
-        expect(true).toBe(true);
-    });
+const DEVSTACK = process.env.DEVSTACK === '1';
+const maybe = DEVSTACK ? describe : describe.skip;
 
-    it("pings Redis", async () => {
-        const r = new Redis(process.env.REDIS_URL!);
-        expect(await r.ping()).toBe("PONG");
-        await r.quit();
-    });
+const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+maybe('DEVSTACK sanity', () => {
+    it(
+        'connects to Postgres',
+        async () => {
+            const url =
+                process.env.DATABASE_URL ??
+                process.env.POSTGRES_URL ??
+                'postgres://postgres:devpass@127.0.0.1:55432/triage';
+
+            let lastErr: unknown;
+
+            for (let i = 0; i < 10; i++) {
+                const client = new Client({ connectionString: url }); // NEW client per attempt
+                try {
+                    await client.connect();
+                    const res = await client.query('select 1 as ok');
+                    expect(res.rows[0].ok).toBe(1);
+                    return; // success
+                } catch (e) {
+                    lastErr = e;
+                    await sleep(500);
+                } finally {
+                    try { await client.end(); } catch { }
+                }
+            }
+
+            throw lastErr;
+        },
+        20_000
+    );
+
+    it(
+        'pings Redis',
+        async () => {
+            const url = process.env.REDIS_URL ?? 'redis://127.0.0.1:6379';
+            const r = new Redis(url);
+            expect(await r.ping()).toBe('PONG');
+            r.disconnect();
+        },
+        10_000
+    );
 });

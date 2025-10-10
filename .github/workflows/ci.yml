@@ -1,0 +1,74 @@
+name: CI (baseline)
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "docs/img/**"
+      - "docs/api/**"
+      - "docs/site-docs.zip"
+      - "datasets/snapshots/**"
+      - ".github/workflows/**" # specialized workflows handle themselves
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/img/**"
+      - "docs/api/**"
+      - "docs/site-docs.zip"
+      - "datasets/snapshots/**"
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Ensure main exists for Turbo filter
+        run: git fetch origin main:refs/remotes/origin/main --depth=1 || true
+
+      - name: Setup Node 20 + pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Enable Corepack & pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.12.0 --activate
+          pnpm -v
+
+      - name: Install deps (frozen on main)
+        run: pnpm i ${{ github.ref == 'refs/heads/main' && '--frozen-lockfile' || '--no-frozen-lockfile' }}
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build changed graph
+        run: pnpm build
+
+      # Fast unit-ish slice with coverage (schemas + contracts + root tests)
+      - name: Tests (fast) with coverage
+        run: pnpm ci:test
+
+      - name: Coverage summary (markdown)
+        run: node tooling/ci/coverage-summary.mjs >> $GITHUB_STEP_SUMMARY || true
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ github.sha }}
+          path: |
+            coverage
+            **/coverage
+          if-no-files-found: ignore

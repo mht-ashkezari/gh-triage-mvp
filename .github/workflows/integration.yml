@@ -1,8 +1,13 @@
-name: Integration
+name: Integration (smoke)
 on:
     pull_request:
 jobs:
-    api-smoke:
+    clients-smoke:
         runs-on: ubuntu-latest
         steps:
-            - run: echo "Integration tests will run once BFF/Run services are bootable (future steps)."
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with: { node-version: "20", cache: "pnpm" }
+            - run: corepack enable && corepack prepare pnpm@9.12.0 --activate
+            - run: pnpm i --frozen-lockfile
+            - run: pnpm smoke:clients
