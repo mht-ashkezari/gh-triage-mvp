@@ -25,5 +25,11 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
+            - name: Build clients and contracts
+              run: |
+                  pnpm -F @ghtriage/schemas build
+                  pnpm -F @ghtriage/contracts build
+                  pnpm -F @ghtriage/clients build
+
             - name: Run smoke test (clients)
               run: pnpm smoke:clients
