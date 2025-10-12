@@ -135,3 +135,6 @@ datasets/**/.cache/
 
 # build/pack artefacts
 gh-triage-mvp@*.*/
+datasets/snapshots/**/sample/*.jsonl
+/repo-mirror.git/
+/clean-check/
