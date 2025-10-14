@@ -1,6 +1,7 @@
 # 🐳 DEVSTACK — Local Development Stack (Docker Compose)
 
 ## What & Why
+
 This step ( **DEVSTACK**) introduces a fully reproducible **local development stack** for the `gh-triage-mvp` project.  
 It provides all required backend services—**Postgres**, **Redis**, **Azurite**, **OpenTelemetry Collector**, and **Jaeger**—so developers can test and run the app locally with production-like parity.
 
@@ -9,6 +10,7 @@ The goal is to make `docker compose up` → `pnpm dev` → `Jaeger UI` a seamles
 ---
 
 ## 🧩 Prerequisites
+
 - **Docker ≥ 24.x** and **Docker Compose v2**
 - **Node 20 + pnpm 9.x**
 - **Make sure ports** `5432`, `6379`, `10000`, `4317`, and `16686` are free  
@@ -37,6 +39,7 @@ The goal is to make `docker compose up` → `pnpm dev` → `Jaeger UI` a seamles
 ## ⚙️ Setup & Run
 
 ### 1️⃣ Copy environment template
+
 ```bash
 cp infra/docker/.env.docker.example infra/docker/.env
 pnpm devstack:up
