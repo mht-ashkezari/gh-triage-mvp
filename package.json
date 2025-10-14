@@ -9,7 +9,11 @@
     "docs:redoc": "mkdir -p docs/api && redocly build-docs docs/openapi/bff.openapi.json --config redocly.yaml -o docs/api/bff.html && redocly build-docs docs/openapi/runs.openapi.json --config redocly.yaml -o docs/api/runs.html",
     "docs:typedoc": "typedoc",
     "docs:api": "pnpm docs:openapi && pnpm docs:redoc && pnpm docs:typedoc",
+    "docs:lint": "markdownlint -c .markdownlint.jsonc \"**/*.md\" \"!**/node_modules/**\" \"!docs/api/**\"",
+    "docs:spell": "cspell --no-progress --show-suggestions --config ./cspell.json \"**/*.md\" \"**/*.ts\" \"!**/node_modules/**\" \"!docs/api/**\"",
     "docs:zip": "rm -f site-docs.zip && (cd docs/api && zip -r ../site-docs.zip . || true) && test -f docs/site-docs.zip && echo 'site-docs.zip ready at docs/site-docs.zip'",
+    "docs:bundle": "mkdir -p docs/api && pnpm -s docs:api && pnpm -s docs:zip",
+    "docs": "pnpm docs:bundle",
     "kpi:md": "node tooling/print-kpis.mjs",
     "kpi:check": "tsx --tsconfig tooling/tsconfig.tooling.json tooling/validate-kpis.ts docs/kpis.yaml packages/schemas/kpis.schema.json",
     "test:kpi": "vitest run --project root tests/kpi.spec.ts",
@@ -22,9 +26,9 @@
     "guard:samples": "node tooling/data/snapshot/guard-samples.mjs",
     "guard:raw": "bash -lc \"! git ls-files | grep -E '^datasets/snapshots/.+?/raw/' || (echo 'raw/ tracked'; exit 1)\"",
     "test:selacc": "pnpm -s run test:selacc:unit && pnpm -s run test:selacc:e2e",
-    "test:selacc:watch": "vitest --watch tests/selacc*.spec.ts",
-    "test:selacc:unit": "vitest run --project root tests/selacc.access.spec.ts tests/selacc.selection.spec.ts",
-    "test:selacc:e2e": "SELACC_APP_MODULE_PATH=apps/bff/src/app.module GITHUB_WEBHOOK_SECRET=testsecret vitest run --project root tests/selacc.webhook.e2e.spec.ts",
+    "test:selacc:watch": "vitest --config vitest.ci.config.ts --watch tests/selacc*.spec.ts",
+    "test:selacc:unit": "vitest run --config vitest.ci.config.ts --project root tests/selacc.access.spec.ts tests/selacc.selection.spec.ts",
+    "test:selacc:e2e": "SELACC_APP_MODULE_PATH=apps/bff/src/app.module GITHUB_WEBHOOK_SECRET=testsecret vitest run --config vitest.ci.config.ts --project root tests/selacc.webhook.e2e.spec.ts",
     "test:docs": "pnpm diagrams:build && pnpm diagrams:check",
     "diagrams:build": "bash tooling/render_diagrams.sh",
     "diagrams:check": "tsx tooling/check_component_ids.ts",
@@ -52,11 +56,16 @@
     "test:all": "vitest run --config vitest.full.config.ts",
     "test:bff:devstack": "vitest run --config vitest.full.config.ts apps/bff/test/devstack.spec.ts",
     "devstack:test": "pnpm devstack:up && wait-port 127.0.0.1:55432 && wait-port 127.0.0.1:6379 && cross-env DOTENV_CONFIG_QUIET=true DEVSTACK=1 vitest run --config vitest.full.config.ts apps/bff/test/devstack.spec.ts; code=$?; pnpm devstack:down; exit $code",
-    "test:local:all": "pnpm ci:test && pnpm devstack:test"
+    "test:local:all": "pnpm ci:test && pnpm devstack:test",
+    "new:adr": "node tooling/dev/new-adr.mjs",
+    "precontracts:openapi": "pnpm -w --filter @ghtriage/schemas build",
+    "precontracts:jsonschema": "pnpm -w --filter @ghtriage/schemas build",
+    "predocs:api": "pnpm -w --filter @ghtriage/schemas build",
+    "docs:server": "http-server docs/api -p 8088 -c-1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@9.12.0",
   "pnpm": {
     "overrides": {
@@ -72,7 +81,7 @@
     "@nestjs/testing": "^11.1.6",
     "@octokit/plugin-paginate-rest": "^13.1.1",
     "@octokit/rest": "^22.0.0",
-    "@redocly/cli": "^2.3.1",
+    "@redocly/cli": "^2.5.1",
     "@types/express": "^4.17.21",
     "@types/ioredis": "^5.0.0",
     "@types/node": "^24.5.1",
@@ -80,11 +89,13 @@
     "@vitest/coverage-v8": "3.2.4",
     "ajv": "^8.17.1",
     "cross-env": "^10.1.0",
+    "cspell": "^8.14.2",
     "csv-writer": "^1.6.0",
     "eslint": "^9.35.0",
     "eslint-plugin-jsdoc": "^58.1.1",
     "eslint-plugin-tsdoc": "^0.4.0",
     "js-yaml": "^4.1.0",
+    "markdownlint-cli": "^0.41.0",
     "nock": "^14.0.10",
     "nodemon": "^3.0.0",
     "p-limit": "^7.1.1",
@@ -100,7 +111,8 @@
     "vitest": "^3.2.4",
     "wait-port": "^1.1.0",
     "yaml": "^2.8.1",
-    "zod-to-json-schema": "^3.23.0"
+    "zod-to-json-schema": "^3.23.0",
+    "http-server": "14.1.1"
   },
   "dependencies": {
     "@ghtriage/schemas": "workspace:^",
@@ -117,7 +129,9 @@
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.23.0"
+    "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=20.19.0 <21"
   }
 }
