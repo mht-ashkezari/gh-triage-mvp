@@ -1,57 +1,82 @@
 name: Docs
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "docs/**"
+      - "packages/**"
+      - "typedoc.json"
+      - "redocly.yaml"
+      - ".github/workflows/docs.yml"
   push:
     branches: [main]
-    # Skip if the ONLY change is the lockfile
-    paths-ignore:
-      - "pnpm-lock.yaml"
+    paths:
+      - "**/*.md"
+      - "docs/**"
+      - "packages/**"
+      - "typedoc.json"
+      - "redocly.yaml"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build-docs:
+  lint-spell:
+    name: Lint markdown, spellcheck, link check
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Markdownlint
+        run: |
+          npm i -g markdownlint-cli@0.41.0
+          markdownlint -c .markdownlint.jsonc "**/*.md" "!**/node_modules/**" "!docs/api/**"
+
+      - name: Spellcheck (cspell)
+        run: |
+          npm i -g cspell@8.14.2
+          cspell --no-progress --show-suggestions --config ./cspell.json "**/*.md" "**/*.ts" "!**/node_modules/**" "!docs/api/**"
+
+      - name: Link check (lychee)
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --verbose --no-progress --exclude-mail --timeout 20s "./**/*.md" --exclude-path "docs/api"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  bundle-api:
+    name: Build API docs & upload artifact
+    runs-on: ubuntu-latest
+    needs: [lint-spell]
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Setup Node 20 (with pnpm cache)
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20.19.0
 
-      - name: Enable Corepack and install pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+          run_install: true
+
+      - name: Generate OpenAPI & JSON Schema
         run: |
-          corepack enable
-          corepack prepare pnpm@9.12.0 --activate
-          pnpm -v
+          pnpm contracts:openapi
+          pnpm contracts:jsonschema
 
-      - name: Install dependencies (incl. devDeps)
-        run: pnpm install --frozen-lockfile
-        env:
-          NODE_ENV: development
+      - name: Build TypeDoc + Redoc bundle
+        run: pnpm -s docs:bundle
 
-      - name: Build workspace (tsc)
-        run: |
-          pnpm -F @ghtriage/schemas run build
-          pnpm -F @ghtriage/kpi-spec run build
-
-      - name: Build API docs (OpenAPI + TypeDoc)
-        run: pnpm docs:api
-
-      - name: Zip site docs
-        run: pnpm docs:zip
-
-      - name: Upload docs artifacts
+      - name: Upload docs artifact
         uses: actions/upload-artifact@v4
         with:
-          name: site-docs
-          path: |
-            docs/site-docs.zip
-            docs/api
+          name: site-docs-${{ github.sha }}
+          path: docs/site-docs.zip
           if-no-files-found: error

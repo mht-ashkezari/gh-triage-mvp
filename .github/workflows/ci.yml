@@ -1,4 +1,4 @@
-name: CI (baseline)
+name: CI
 
 on:
   pull_request:
@@ -8,7 +8,6 @@ on:
       - "docs/api/**"
       - "docs/site-docs.zip"
       - "datasets/snapshots/**"
-      - ".github/workflows/**"
   push:
     branches: [main]
     paths-ignore:
@@ -16,6 +15,9 @@ on:
       - "docs/api/**"
       - "docs/site-docs.zip"
       - "datasets/snapshots/**"
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -25,7 +27,8 @@ jobs:
   baseline:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
+    env:
+      ACT: ${{ secrets.ACT}}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,10 +37,10 @@ jobs:
       - name: Ensure main exists for Turbo filter
         run: git fetch origin main:refs/remotes/origin/main --depth=1 || true
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 20.19.0
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.19.0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -47,6 +50,9 @@ jobs:
 
       - name: Install dependencies (frozen on main)
         run: pnpm install ${{ github.ref == 'refs/heads/main' && '--frozen-lockfile' || '--no-frozen-lockfile' }}
+
+      - name: Repo layout check
+        run: pnpm repo:layout:check
 
       - name: Lint
         run: pnpm lint
@@ -67,6 +73,7 @@ jobs:
         run: node tooling/ci/coverage-summary.mjs >> $GITHUB_STEP_SUMMARY || true
 
       - name: Upload coverage artifacts
+        if: ${{ env.ACT == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ github.sha }}
