@@ -1,66 +1,131 @@
-# .github/workflows/diagrams.yml
 name: Build Architecture Diagrams
 
 on:
   push:
     paths:
-      - "docs/arch/releases/**.mmd"
+      - "docs/arch/releases/**/*.mmd"
       - "tooling/render_diagrams.sh"
       - "tooling/check_component_ids.ts"
+      - ".github/workflows/diagrams.yml"
   pull_request:
     paths:
-      - "docs/arch/releases/**.mmd"
+      - "docs/arch/releases/**/*.mmd"
+      - "tooling/render_diagrams.sh"
+      - "tooling/check_component_ids.ts"
+      - ".github/workflows/diagrams.yml"
+  workflow_dispatch:
 
 jobs:
   build-diagrams:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      # 1) Node first (NO pnpm cache here)
-      - name: Setup Node
+      # Ensure OS libs needed by headless Chrome (works on GH runners and act)
+      - name: Install system deps for headless Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 libnspr4 libxss1 libatk1.0-0 libatk-bridge2.0-0 \
+            libdrm2 libgbm1 libasound2 libxshmfence1 libxcomposite1 \
+            libxrandr2 libxdamage1 libxfixes3 libxext6 libpango-1.0-0 \
+            libcairo2 libgtk-3-0 fonts-liberation libx11-xcb1
+          fc-cache -fv || true
+
+      # 1) Node first
+      - name: Setup Node.js 20.19.0
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.19.0
+          cache: pnpm
 
-      # 2) Install pnpm
+      # 2) pnpm
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9.12.0
           run_install: false
 
-      # 3) Cache pnpm store
+      # 3) Cache pnpm store (skip when running via act)
       - name: Determine pnpm store path
-        id: pnpm-cache
-        run: echo "store_path=$(pnpm store path)" >> $GITHUB_OUTPUT
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path)" >> "$GITHUB_ENV"
 
       - name: Restore pnpm cache
+        if: ${{ !env.ACT }}
         uses: actions/cache@v4
         with:
-          path: ${{ steps.pnpm-cache.outputs.store_path }} # FIXED: use env instead of outputs
+          path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      # 4) Install deps
+      # (Optional but helpful) restore cached Chromium
+      - name: Restore Chromium cache
+        uses: actions/cache/restore@v4
+        with:
+          path: chrome
+          key: ${{ runner.os }}-chrome-${{ hashFiles('.github/workflows/diagrams.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-chrome-
+
+      # 4) Deps
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 5) Build & validate diagrams
+      # 5) Install a Chromium for mermaid-cli and export its path (fail if not found)
+      - name: Install Chromium for mermaid-cli
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Download Chrome into ./chrome so the script’s auto-discovery picks it up
+          pnpm dlx @puppeteer/browsers install chrome@stable --base=chrome
+
+          # Try to resolve the path via puppeteer helper first
+          CHROME_PATH="$(pnpm dlx @puppeteer/browsers executable-path chrome@stable --base=chrome || true)"
+
+          # Fallback: glob for the binary if the helper returns empty (common under `act`)
+          if [ -z "${CHROME_PATH}" ]; then
+            CHROME_PATH="$(ls -d "$GITHUB_WORKSPACE"/chrome/linux-*/chrome-linux*/chrome 2>/dev/null | head -n1 || true)"
+          fi
+
+          # Final check
+          if [ -z "${CHROME_PATH}" ] || [ ! -x "${CHROME_PATH}" ]; then
+            echo "❌ Failed to resolve Chromium executable path." >&2
+            echo "Contents of ./chrome:"
+            ls -la "$GITHUB_WORKSPACE/chrome" || true
+            exit 1
+          fi
+
+          echo "PUPPETEER_EXECUTABLE_PATH=${CHROME_PATH}" >> "$GITHUB_ENV"
+          echo "Using Chromium: ${CHROME_PATH}"
+
+      # Save Chromium cache (if restored cache was a miss, this will populate it)
+      - name: Save Chromium cache
+        if: ${{ !cancelled() }}
+        uses: actions/cache/save@v4
+        with:
+          path: chrome
+          key: ${{ runner.os }}-chrome-${{ hashFiles('.github/workflows/diagrams.yml') }}
+
+      # 6) Build & validate diagrams
       - name: Render versioned diagrams
         run: pnpm diagrams:build
 
       - name: Run component ID consistency check
         run: pnpm diagrams:check
 
-      # NEW: slug the branch name for artifact name
+      # 7) Slug the branch name for artifact naming
       - name: Set safe artifact name
+        shell: bash
         run: |
           SAFE_BRANCH="${GITHUB_REF_NAME//\//-}"
           echo "ART_NAME=arch-diagrams-${SAFE_BRANCH:-${GITHUB_SHA}}" >> "$GITHUB_ENV"
 
-      # 6) Upload SVGs
+      # 8) Upload SVGs
       - name: Upload diagrams artifact
         uses: actions/upload-artifact@v4
         with:
