@@ -143,4 +143,4 @@ docs/site-docs.zip
 
 # Downloaded headless Chromium for diagrams
 /.chromium/
-/chrome/
+/chrome/.artifacts/
