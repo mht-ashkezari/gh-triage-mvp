@@ -44,19 +44,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.19.0
-          cache: "pnpm"
+          cache: "none"
 
-      - name: Enable Corepack and Prepare pnpm
+      - name: Enable Corepack and pnpm
         shell: bash
         run: |
           set -euo pipefail
           corepack enable
           corepack prepare pnpm@9.12.3 --activate
            # Ensure pnpm is visible to subsequent steps
-          echo "PATH=$(corepack which pnpm | xargs dirname):$PATH" >> "$GITHUB_ENV"
-          pnpm --version
-      - name: Verify pnpm
-        run: pnpm --version
+           echo "$(corepack which pnpm | xargs dirname)" >> $GITHUB_PATH
+          pnpm -v
 
       # Cache pnpm store after pnpm is active
       - name: Determine pnpm store path
