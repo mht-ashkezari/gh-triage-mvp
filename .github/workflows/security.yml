@@ -6,7 +6,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "0 3 * * 1" # weekly on Mondays at 03:00 UTC
+    - cron: "0 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -19,10 +19,14 @@ concurrency:
 
 jobs:
   codeql:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
     name: CodeQL (JS/TS)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
@@ -32,8 +36,6 @@ jobs:
   sbom:
     name: SBOM (SPDX)
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: anchore/sbom-action@v0
@@ -53,35 +55,44 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
-      - uses: aquasecurity/trivy-action@0.20.0
+      - uses: aquasecurity/trivy-action@0.21.0
         with:
           scan-type: fs
           ignore-unfixed: true
           format: sarif
           output: trivy.sarif
-      - uses: github/codeql-action/upload-sarif@v3
+          trivy-config: |
+            {
+              "skipUpdate": true,
+              "timeout": "10m",
+              "cacheDir": "/tmp/trivy-cache"
+            }
+      - name: Upload SARIF to code scanning
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy.sarif
+
+      - name: Upload SARIF as artifact (fork PRs)
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-fs-sarif
+          path: trivy.sarif
 
   deps-audit:
     name: pnpm audit (advisory)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js 20.19.0
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20.19.0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 9.12.0
           run_install: false
-
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-
       - name: Run dependency audit (non-blocking)
         run: pnpm audit --audit-level=high || true

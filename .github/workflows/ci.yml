@@ -27,8 +27,6 @@ jobs:
   baseline:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      ACT: ${{ secrets.ACT}}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,8 +46,8 @@ jobs:
           version: 9.12.0
           run_install: false
 
-      - name: Install dependencies (frozen on main)
-        run: pnpm install ${{ github.ref == 'refs/heads/main' && '--frozen-lockfile' || '--no-frozen-lockfile' }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Repo layout check
         run: pnpm repo:layout:check
@@ -66,18 +64,11 @@ jobs:
       - name: Build changed graph
         run: pnpm build
 
+      - name: KPI Schema + Validation
+        run: pnpm ci:kpi
+
       - name: Tests (fast) with coverage
         run: pnpm ci:test
 
       - name: Coverage summary (markdown)
         run: node tooling/ci/coverage-summary.mjs >> $GITHUB_STEP_SUMMARY || true
-
-      - name: Upload coverage artifacts
-        if: ${{ env.ACT == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ github.sha }}
-          path: |
-            coverage
-            **/coverage
-          if-no-files-found: ignore

@@ -17,6 +17,7 @@
     "kpi:md": "node tooling/print-kpis.mjs",
     "kpi:check": "tsx --tsconfig tooling/tsconfig.tooling.json tooling/validate-kpis.ts docs/kpis.yaml packages/schemas/kpis.schema.json",
     "test:kpi": "vitest run --project root tests/kpi.spec.ts",
+    "schema:kpi": "pnpm -w --filter @ghtriage/schemas build",
     "ci:kpi": "pnpm schema:kpi && pnpm kpi:check",
     "score": "ghtriage repos score",
     "score:args": "ghtriage repos score",
