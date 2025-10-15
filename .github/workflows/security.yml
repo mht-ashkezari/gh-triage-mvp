@@ -42,7 +42,14 @@ jobs:
 
       - name: Analyze & upload CodeQL results
         uses: github/codeql-action/analyze@v3
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
+        continue-on-error: true
+
+      - name: Upload SARIF as artifact (no GitHub upload)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-sarif
+          path: results/**/*.sarif
 
   # SBOM generator
   sbom:
