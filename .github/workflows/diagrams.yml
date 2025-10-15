@@ -35,24 +35,27 @@ jobs:
             libxdamage1 libxfixes3 libxext6 libpango-1.0-0 libcairo2 \
             libgtk-3-0 fonts-liberation libx11-xcb1 libnss3-tools \
             libdbus-glib-1-2 || true
-          # Handle Ubuntu 22.04 vs 24.04 package difference
+          # Handle Ubuntu 22.04 vs 24.04 difference
           sudo apt-get install -y libasound2 || sudo apt-get install -y libasound2t64
           fc-cache -fv || true
 
+      # Node.js + pnpm setup
       - name: Setup Node.js 20.19.0
         uses: actions/setup-node@v4
         with:
           node-version: 20.19.0
-          cache: pnpm
+          cache: "pnpm"
 
-      - name: Enable Corepack (pnpm)
+      - name: Enable Corepack
         run: corepack enable
-      - name: Setup pnpm
+
+      - name: Prepare pnpm
         run: corepack prepare pnpm@9.12.3 --activate
 
-      - name: Verify pnpm version
+      - name: Verify pnpm
         run: pnpm --version
 
+      # Cache pnpm store after pnpm is active
       - name: Determine pnpm store path
         shell: bash
         run: echo "STORE_PATH=$(pnpm store path)" >> "$GITHUB_ENV"

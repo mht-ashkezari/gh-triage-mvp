@@ -65,7 +65,7 @@ jobs:
         run: pnpm build
 
       - name: KPI Schema + Validation
-        run: pnpm ci:kpi
+        run: pnpm vitest run --config vitest.ci.config.ts
 
       - name: Tests (fast) with coverage
         run: pnpm ci:test
