@@ -15,6 +15,9 @@ on:
       - ".github/workflows/diagrams.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-diagrams:
     runs-on: ubuntu-latest
@@ -23,9 +26,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Ensure OS libs needed by headless Chrome
+      # Install minimal OS deps for headless Chromium
       - name: Install system deps for headless Chromium
-        shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update
@@ -39,30 +41,26 @@ jobs:
           sudo apt-get install -y libasound2 || sudo apt-get install -y libasound2t64
           fc-cache -fv || true
 
-      # Node.js + pnpm setup
-      - name: Setup Node.js 20.19.0
+      # Node setup with pnpm cache (fixes "cache: none" error)
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20.19.0
-          cache: "none"
+          cache: pnpm
 
       - name: Enable Corepack and pnpm
-        shell: bash
         run: |
           set -euo pipefail
           corepack enable
           corepack prepare pnpm@9.12.3 --activate
-           # Ensure pnpm is visible to subsequent steps
-           echo "$(corepack which pnpm | xargs dirname)" >> $GITHUB_PATH
+          echo "$(corepack which pnpm | xargs dirname)" >> $GITHUB_PATH
           pnpm -v
 
-      # Cache pnpm store after pnpm is active
+      # Restore pnpm cache
       - name: Determine pnpm store path
-        shell: bash
         run: echo "STORE_PATH=$(pnpm store path)" >> "$GITHUB_ENV"
 
       - name: Restore pnpm cache
-        if: ${{ !env.ACT }}
         uses: actions/cache@v4
         with:
           path: ${{ env.STORE_PATH }}
@@ -70,6 +68,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      # Restore cached Chromium if available
       - name: Restore Chromium cache
         uses: actions/cache/restore@v4
         with:
@@ -81,8 +80,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Install Chromium for Mermaid CLI rendering
       - name: Install Chromium for mermaid-cli
-        shell: bash
         run: |
           set -euo pipefail
           pnpm dlx @puppeteer/browsers install chrome@stable --base=chrome
@@ -104,14 +103,15 @@ jobs:
           path: chrome
           key: ${{ runner.os }}-chrome-${{ hashFiles('.github/workflows/diagrams.yml') }}
 
+      # Render all versioned diagrams and check IDs
       - name: Render versioned diagrams
         run: pnpm diagrams:build
 
       - name: Run component ID consistency check
         run: pnpm diagrams:check
 
+      # Upload as artifact
       - name: Set safe artifact name
-        shell: bash
         run: |
           SAFE_BRANCH="${GITHUB_REF_NAME//\//-}"
           echo "ART_NAME=arch-diagrams-${SAFE_BRANCH:-${GITHUB_SHA}}" >> "$GITHUB_ENV"
