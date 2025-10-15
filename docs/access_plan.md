@@ -1,4 +1,5 @@
 # Access Plan (P0.2.B)
+
 **Model:** GitHub App (read-only) with "Only select repositories".
 **Permissions (read):** metadata, contents, issues, pull_requests.
 **Webhooks:** issues, issue_comment, pull_request, pull_request_review, label, release.

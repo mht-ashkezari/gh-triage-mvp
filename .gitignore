@@ -94,9 +94,7 @@ infra/**/crash.*.log
 # --- SBOM / scanners / reports (keep if you want them tracked) ---
 /reports/
 
-# --- Docs (if you generate docs, ignore the output) ---
-docs/api/
-# 
+
 
 /_snapshots
 /scripts
@@ -130,11 +128,20 @@ datasets/**/.cache/
 
 
 
-# build artifacts
-/docs/site-docs.zip
+
 
 # build/pack artefacts
 gh-triage-mvp@*.*/
 datasets/snapshots/**/sample/*.jsonl
 /repo-mirror.git/
 /clean-check/
+
+
+# Generated docs
+docs/api/
+docs/site-docs.zip
+
+# Downloaded headless Chromium for diagrams
+/.chromium/
+/chrome/.artifacts/
+.artifacts/

@@ -5,6 +5,7 @@
 **Prereqs**: Node 20, pnpm 9.
 
 **Commands**
+
 ```bash
 pnpm -F @ghtriage/schemas build
 pnpm -F @ghtriage/contracts build

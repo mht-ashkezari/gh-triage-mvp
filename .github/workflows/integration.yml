@@ -1,35 +1,35 @@
 name: Integration (smoke)
 
 on:
-    pull_request:
+  pull_request:
 
 jobs:
-    clients-smoke:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
+  clients-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Setup Node.js 20
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20
+      - name: Setup Node.js 20.19.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
-              with:
-                  version: 9.12.0
-                  run_install: false
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+          run_install: false
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-            - name: Build clients and contracts
-              run: |
-                  pnpm -F @ghtriage/schemas build
-                  pnpm -F @ghtriage/contracts build
-                  pnpm -F @ghtriage/clients build
+      - name: Build clients and contracts
+        run: |
+          pnpm -F @ghtriage/schemas build
+          pnpm -F @ghtriage/contracts build
+          pnpm -F @ghtriage/clients build
 
-            - name: Run smoke test (clients)
-              run: pnpm smoke:clients
+      - name: Run smoke test (clients)
+        run: pnpm smoke:clients

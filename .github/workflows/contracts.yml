@@ -1,6 +1,15 @@
 name: Contracts
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/contracts/**"
+      - "packages/schemas/**"
+      - "docs/openapi/**"
+      - "docs/jsonschema/**"
+      - "redocly.yaml"
+      - ".github/workflows/contracts.yml"
   push:
     branches: [main]
     paths:
@@ -8,17 +17,7 @@ on:
       - "packages/schemas/**"
       - "docs/openapi/**"
       - "docs/jsonschema/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - ".github/workflows/contracts.yml"
-  pull_request:
-    paths:
-      - "packages/contracts/**"
-      - "packages/schemas/**"
-      - "docs/openapi/**"
-      - "docs/jsonschema/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
+      - "redocly.yaml"
       - ".github/workflows/contracts.yml"
 
 permissions:
@@ -32,14 +31,15 @@ jobs:
   build-contracts:
     runs-on: ubuntu-latest
     timeout-minutes: 12
-
+    env:
+      ACT: ${{ secrets.ACT}}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 20.19.0
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.19.0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -63,16 +63,20 @@ jobs:
       - name: Lint OpenAPI (Redocly)
         run: pnpm contracts:lint
 
-      # Unified test command (no project filter flags)
+      - name: Require ADR on contract change
+        if: ${{ hashFiles('tooling/ci/require-adr-on-contract-change.sh') != '' }}
+        run: bash tooling/ci/require-adr-on-contract-change.sh
+
       - name: Run contract/unit tests
         run: pnpm ci:test
 
       - name: Upload contract artifacts
+        if: ${{ env.ACT == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: contracts-artifacts-${{ github.sha }}
           path: |
-            docs/openapi/*.json
-            docs/jsonschema/*.json
+            docs/openapi/*.openapi.json
+            docs/jsonschema/*.schema.json
           if-no-files-found: error
           retention-days: 7
