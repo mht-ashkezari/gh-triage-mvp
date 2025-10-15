@@ -135,13 +135,3 @@ gh-triage-mvp@*.*/
 datasets/snapshots/**/sample/*.jsonl
 /repo-mirror.git/
 /clean-check/
-
-
-# Generated docs
-docs/api/
-docs/site-docs.zip
-
-# Downloaded headless Chromium for diagrams
-/.chromium/
-/chrome/.artifacts/
-.artifacts/
