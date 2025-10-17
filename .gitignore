@@ -36,6 +36,8 @@ coverage/
 # --- Env & secrets (keep only .env.example tracked) ---
 .env
 .env.*
+.env.test
+**/.env.test
 **/.env
 *.env.local
 !.env.example
