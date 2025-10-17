@@ -48,7 +48,9 @@ pnpm contracts:lint
 pnpm contracts:openapi && pnpm contracts:jsonschema
 pnpm docs:bundle        # writes docs/api/* and docs/site-docs.zip
 ```
+
 <<<<<<< HEAD
+
 - **How-to guides:**  
   - [GitHub App install & OAuth](./docs/howto/ghapp-github-install-oauth.md)  
   - [ngrok webhook tunnel](./docs/howto/ngrok_webhook.md)

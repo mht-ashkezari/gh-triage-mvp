@@ -1,40 +1,87 @@
 name: GH App (P2.1)
 
 on:
-    pull_request:
-        branches: [main]
-        paths:
-            - "apps/bff/src/github/**"
-            - "apps/bff/test/**"
-            - "packages/contracts/src/github.ts"
-            - "infra/sql/002_ghapp.sql"
-            - ".github/workflows/ghapp.yml"
-    push:
-        branches: [main]
-        paths:
-            - "apps/bff/src/github/**"
-            - "apps/bff/test/**"
-            - "packages/contracts/src/github.ts"
-            - "infra/sql/002_ghapp.sql"
-            - ".github/workflows/ghapp.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/bff/src/github/**"
+      - "apps/bff/test/**"
+      - "packages/contracts/src/github.ts"
+      - "infra/sql/002_ghapp.sql"
+      - ".github/workflows/ghapp.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/bff/src/github/**"
+      - "apps/bff/test/**"
+      - "packages/contracts/src/github.ts"
+      - "infra/sql/002_ghapp.sql"
+      - ".github/workflows/ghapp.yml"
 
-permissions: { contents: read }
+permissions:
+  contents: read
 
 jobs:
-    ghapp:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
-              with: { node-version: 20.19.0 }
-            - uses: pnpm/action-setup@v4
-              with: { version: 9.12.0, run_install: false }
-            - run: pnpm install --frozen-lockfile
-            - name: Build packages
-              run: |
-                  pnpm -F @ghtriage/schemas build || true
-                  pnpm -F @ghtriage/contracts build || true
-                  pnpm -F @ghtriage/bff build || true
-            - name: Unit tests (BFF GHAPP)
-              run: pnpm -F @ghtriage/bff vitest run --coverage
+  ghapp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    #Start a PostgreSQL service so the E2E tests can connect
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghtriage
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+          run_install: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: |
+          pnpm -F @ghtriage/schemas build || true
+          pnpm -F @ghtriage/contracts build || true
+          pnpm -F @ghtriage/bff build || true
+
+      - name: Prepare database schema
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+        run: |
+          psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true
+          psql "$DATABASE_URL" -c '\dt'
+
+      - name: Run GH App tests (unit + e2e)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+          GITHUB_APP_ID: "123456"
+          GITHUB_PRIVATE_KEY_BASE64: "dGVzdA=="
+          GITHUB_WEBHOOK_SECRET: "testsecret"
+          CORS_ORIGIN: "http://localhost:3000"
+        run: |
+          pnpm -F @ghtriage/bff vitest run --config apps/bff/vitest.config.ts --coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghapp-coverage
+          path: apps/bff/coverage
