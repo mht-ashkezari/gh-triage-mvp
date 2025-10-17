@@ -12,15 +12,24 @@
         "target": "ES2022",
         "strict": true,
         "skipLibCheck": true,
-        "baseUrl": "../../",
         "paths": {
             "@ghtriage/contracts": [
                 "packages/contracts/src/index.ts"
             ],
             "@ghtriage/contracts/*": [
                 "packages/contracts/src/*"
+            ],
+            "@ghtriage/contracts/bff": [
+                "packages/contracts/src/bff.contract.ts"
+            ],
+            "@ghtriage/contracts/runs": [
+                "packages/contracts/src/runs.contract.ts"
+            ],
+            "@ghtriage/contracts/github": [
+                "packages/contracts/src/github.ts"
             ]
-        }
+        },
+        "baseUrl": "../../",
     },
     "include": [
         "src/**/*"
