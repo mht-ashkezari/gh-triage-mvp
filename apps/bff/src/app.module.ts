@@ -1,8 +1,8 @@
-import "reflect-metadata";
-import { Module } from "@nestjs/common";
-import { GithubWebhookController } from "./webhooks/github.controller";
+import 'reflect-metadata';
+import { Module } from '@nestjs/common';
+import { GithubModule } from './github/github.module';
 
 @Module({
-    controllers: [GithubWebhookController],
+    imports: [GithubModule],
 })
 export class AppModule { }
