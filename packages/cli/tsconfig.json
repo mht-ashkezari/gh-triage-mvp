@@ -10,12 +10,12 @@
         "strict": true,
         "skipLibCheck": true
     },
+    "include": [
+        "src/**/*.ts"
+    ],
     "references": [
         {
             "path": "../kpi-spec"
         }
-    ],
-    "include": [
-        "src/**/*.ts"
     ]
 }

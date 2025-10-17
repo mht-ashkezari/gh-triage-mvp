@@ -1,7 +1,12 @@
+import * as dotenv from "dotenv";
+import * as path from "node:path";
+
 import crypto from "node:crypto";
 import { Injectable } from "@nestjs/common";
 import { createAppAuth } from "@octokit/auth-app";
 import { Pool } from "pg";
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 

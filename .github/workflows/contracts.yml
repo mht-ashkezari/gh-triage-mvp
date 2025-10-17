@@ -67,6 +67,20 @@ jobs:
         if: ${{ hashFiles('tooling/ci/require-adr-on-contract-change.sh') != '' }}
         run: bash tooling/ci/require-adr-on-contract-change.sh
 
+      - name: Start Postgres for tests
+        uses: docker://postgres:15
+        with:
+          options: >-
+            -e POSTGRES_PASSWORD=devpass
+            -p 5432:5432
+
+      - name: Run contract/unit tests
+        env:
+          DATABASE_URL: postgresql://postgres:devpass@localhost:5432/ghtriage
+        run: |
+          psql $DATABASE_URL -c 'CREATE DATABASE ghtriage;'
+          pnpm ci:test
+
       - name: Run contract/unit tests
         run: pnpm ci:test
 
