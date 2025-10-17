@@ -147,3 +147,6 @@ docs/site-docs.zip
 /.chromium/
 /chrome/.artifacts/
 .artifacts/
+
+docs/api/**
+docs/site-docs/zip
