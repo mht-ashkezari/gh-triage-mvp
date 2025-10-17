@@ -8,7 +8,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 @Injectable()
 export class GithubService {
-    private webhookSecret = process.env.GITHUB_WEBHOOK_SECRET || "";
+    private webhookSecret = process.env.GITHUB_WEBHOOK_SECRET || "testsecret";
     private appId = process.env.GITHUB_APP_ID || "";
     private privateKey = Buffer.from(process.env.GITHUB_PRIVATE_KEY_BASE64 || "", "base64").toString("utf8");
 
