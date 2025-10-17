@@ -1,3 +1,4 @@
+# .github/workflows/selacc-tests.yml
 name: SELACC Tests
 on:
   pull_request:
@@ -44,7 +45,7 @@ jobs:
           --health-cmd "pg_isready -U postgres -d ghtriage"
           --health-interval 5s
           --health-timeout 5s
-          --health-retries 10
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - run: corepack enable

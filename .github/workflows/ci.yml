@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 15
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
-
+      GITHUB_WEBHOOK_SECRET: testsecret
     services:
       postgres:
         image: postgres:16
@@ -42,8 +42,7 @@ jobs:
           --health-cmd "pg_isready -U postgres -d ghtriage"
           --health-interval 5s
           --health-timeout 5s
-          --health-retries 10
-
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -81,7 +80,7 @@ jobs:
       - name: Build changed graph
         run: pnpm build
 
-      - name: Prepare database schema
+      - name: Prepare DB schema
         run: |
           psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true
           psql "$DATABASE_URL" -c '\dt'

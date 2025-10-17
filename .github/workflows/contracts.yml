@@ -33,21 +33,20 @@ jobs:
     timeout-minutes: 12
     env:
       ACT: ${{ secrets.ACT }}
-      DATABASE_URL: postgresql://postgres:devpass@localhost:5432/ghtriage
-
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
     services:
       postgres:
         image: postgres:16
         ports: ["5432:5432"]
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: devpass
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: ghtriage
         options: >-
           --health-cmd "pg_isready -U postgres -d ghtriage"
           --health-interval 5s
           --health-timeout 5s
-          --health-retries 10
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -83,10 +82,16 @@ jobs:
         if: ${{ hashFiles('tooling/ci/require-adr-on-contract-change.sh') != '' }}
         run: bash tooling/ci/require-adr-on-contract-change.sh
 
-      - name: Prepare DB & run tests
+      - name: Prepare DB schema
         run: |
-          psql "$DATABASE_URL" -c 'SELECT 1;'        # sanity check
-          pnpm ci:test
+          psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true
+          psql "$DATABASE_URL" -c '\dt'
+
+      - name: Run contract/unit tests
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          GITHUB_WEBHOOK_SECRET: testsecret
+        run: pnpm ci:test
 
       - name: Upload contract artifacts
         if: ${{ env.ACT == 'true' }}
