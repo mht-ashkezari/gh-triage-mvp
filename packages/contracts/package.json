@@ -32,11 +32,16 @@
         "./openapi": {
             "import": "./dist/openapi.generate.js",
             "default": "./dist/openapi.generate.js"
+        },
+        "./github": {
+            "types": "./dist/github.d.ts",
+            "import": "./dist/github.js",
+            "default": "./dist/github.js"
         }
     },
     "scripts": {
-        "build": "tsc -p tsconfig.json",
-        "clean": "rimraf dist",
+        "build": "tsc -b",
+        "clean": "rimraf dist tsconfig.tsbuildinfo",
         "openapi": "tsx src/openapi.generate.ts",
         "jsonschema": "tsx src/jsonschema.generate.ts"
     },
@@ -55,5 +60,21 @@
         "outputs": [
             "dist/**"
         ]
+    },
+    "typesVersions": {
+        "*": {
+            "bff": [
+                "dist/bff.contract.d.ts"
+            ],
+            "runs": [
+                "dist/runs.contract.d.ts"
+            ],
+            "github": [
+                "dist/github.d.ts"
+            ],
+            "*": [
+                "dist/index.d.ts"
+            ]
+        }
     }
 }
