@@ -27,6 +27,20 @@ jobs:
   baseline:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghtriage
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,11 +77,22 @@ jobs:
 
       - name: Build changed graph
         run: pnpm build
-
+      - name: Prepare database schema
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+        run: |
+          psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true
+          psql "$DATABASE_URL" -c '\dt'
       - name: KPI Schema + Validation
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+          GITHUB_WEBHOOK_SECRET: testsecret
         run: pnpm vitest run --config vitest.ci.config.ts
 
       - name: Tests (fast) with coverage
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+          GITHUB_WEBHOOK_SECRET: testsecret
         run: pnpm ci:test
 
       - name: Coverage summary (markdown)

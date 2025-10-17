@@ -33,6 +33,19 @@ jobs:
     timeout-minutes: 12
     env:
       ACT: ${{ secrets.ACT}}
+    services:
+      postgres:
+        image: postgres:16
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: devpass
+          POSTGRES_DB: ghtriage
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -74,15 +87,12 @@ jobs:
             -e POSTGRES_PASSWORD=devpass
             -p 5432:5432
 
-      - name: Run contract/unit tests
+      - name: Run contract/unit tests (with Postgres)
         env:
-          DATABASE_URL: postgresql://postgres:devpass@localhost:5432/ghtriage
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
         run: |
-          psql $DATABASE_URL -c 'CREATE DATABASE ghtriage;'
+          psql "postgresql://postgres:postgres@localhost:5432/postgres" -c 'CREATE DATABASE ghtriage;' || true
           pnpm ci:test
-
-      - name: Run contract/unit tests
-        run: pnpm ci:test
 
       - name: Upload contract artifacts
         if: ${{ env.ACT == 'true' }}
