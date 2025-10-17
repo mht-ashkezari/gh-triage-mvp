@@ -29,7 +29,11 @@ maybe('DEVSTACK sanity', () => {
                     lastErr = e;
                     await sleep(500);
                 } finally {
-                    try { await client.end(); } catch { }
+                    try {
+                        await client.end();
+                    } catch {
+                        // ignore close errors
+                    }
                 }
             }
 

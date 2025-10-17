@@ -1,5 +1,5 @@
 
-
+import crypto from "node:crypto";
 import { describe, it, expect } from "vitest";
 import { GithubService } from "../src/github/github.service";
 
@@ -8,7 +8,6 @@ describe("HMAC verify", () => {
     (svc as any).webhookSecret = "shhhh";
     it("accepts valid sha256 signature", () => {
         const body = '{"ok":true}';
-        const crypto = require("node:crypto");
         const hex = crypto.createHmac("sha256", "shhhh").update(body).digest("hex");
         expect(svc.verifyHmac("sha256=" + hex, body)).toBe(true);
     });
