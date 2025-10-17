@@ -19,4 +19,3 @@ ngrok http 4100
 curl -i "$PUBLIC_URL/webhooks/github" -X POST -H "Content-Type: application/json" -d '{"ping":"pong"}'
 # Expect: HTTP/1.1 200 OK
 ```
-    

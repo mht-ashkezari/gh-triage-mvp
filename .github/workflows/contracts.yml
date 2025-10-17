@@ -33,6 +33,7 @@ jobs:
     timeout-minutes: 12
     env:
       ACT: ${{ secrets.ACT}}
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
     services:
       postgres:
         image: postgres:16
@@ -80,16 +81,7 @@ jobs:
         if: ${{ hashFiles('tooling/ci/require-adr-on-contract-change.sh') != '' }}
         run: bash tooling/ci/require-adr-on-contract-change.sh
 
-      - name: Start Postgres for tests
-        uses: docker://postgres:15
-        with:
-          options: >-
-            -e POSTGRES_PASSWORD=devpass
-            -p 5432:5432
-
-      - name: Run contract/unit tests (with Postgres)
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+      - name: Prepare DB & run tests
         run: |
           psql "postgresql://postgres:postgres@localhost:5432/postgres" -c 'CREATE DATABASE ghtriage;' || true
           pnpm ci:test
