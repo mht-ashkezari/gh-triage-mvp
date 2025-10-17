@@ -21,3 +21,8 @@ Use ngrok (or GitHub CLI) to expose ${PUBLIC_URL}/webhooks/github.
 - [ ] Install on an org or test repo.
 - [ ] Deliveries show 200 OK for installation* events.
 - [ ] /github/installations and /github/installations/{id}/repos return rows.
+
+**Verify**
+- [x] GitHub App page shows “Last delivery → 200 OK”
+- [x] `pnpm test -F @ghtriage/bff` passes all 7 tests
+- [x] Database tables `installations` and `repos` contain rows

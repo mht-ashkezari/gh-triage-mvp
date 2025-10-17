@@ -11,3 +11,9 @@ ngrok http 4100
 ${PUBLIC_URL}/webhooks/github
 
 - Use the same secret value as GITHUB_WEBHOOK_SECRET from your .env.
+
+**Verify**
+```bash
+curl -i $PUBLIC_URL/webhooks/github -X POST -d '{"ping":"pong"}'
+# Expect: HTTP/1.1 200 OK
+```
