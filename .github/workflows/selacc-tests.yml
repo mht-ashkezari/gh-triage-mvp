@@ -58,6 +58,7 @@ jobs:
       - run: pnpm i --frozen-lockfile
       - name: Prepare DB schema
         run: |
-          psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true
+          pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql
           psql "$DATABASE_URL" -c '\dt'
       - run: pnpm test:selacc:e2e

@@ -42,6 +42,7 @@ export default defineConfig({
                 test: {
                     name: 'root',
                     include: ['tests/**/*.spec.ts'],
+                    exclude: ['tests/selacc.webhook.e2e.spec.ts'],
                     setupFiles: ['./vitest.setup.ts'],
                     environment: 'node',
                 },
