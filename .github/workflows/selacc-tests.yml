@@ -1,3 +1,4 @@
+# .github/workflows/selacc-tests.yml
 name: SELACC Tests
 on:
   pull_request:
@@ -60,7 +61,7 @@ jobs:
       - run: corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
 
-      # (Optional) sanity to prove the file is here
+      # Prove the test file exists (nice debug if the path changes)
       - name: Show test file
         run: ls -la tests && test -f tests/selacc.webhook.e2e.spec.ts
 
@@ -76,5 +77,6 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql
           psql "$DATABASE_URL" -c '\dt'
 
+      # IMPORTANT: use the script that pins Vitest to the 'root' project
       - name: Run SELACC e2e
-        run: pnpm exec vitest run --config vitest.ci.config.ts tests/selacc.webhook.e2e.spec.ts
+        run: pnpm test:selacc:e2e
