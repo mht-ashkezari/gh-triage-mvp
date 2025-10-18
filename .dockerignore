@@ -1,1 +1,23 @@
 scripts
+
+**/node_modules
+**/.pnpm
+**/.turbo
+**/dist
+**/.cache
+coverage
+*.log
+devstack.log
+
+# VCS / CI
+.git
+.github
+
+# editor junk
+*.swp
+.DS_Store
+
+# don't ignore compose assets we need:
+!infra/docker/otel-collector.yaml
+!infra/docker/wiremock/mappings/**
+!infra/docker/docker-compose.dev.yml
