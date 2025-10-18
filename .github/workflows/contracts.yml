@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 12
     env:
       ACT: ${{ secrets.ACT }}
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
     services:
       postgres:
         image: postgres:16
@@ -43,7 +43,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: ghtriage
         options: >-
-          --health-cmd "pg_isready -U postgres -d ghtriage"
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
@@ -81,7 +81,16 @@ jobs:
       - name: Require ADR on contract change
         if: ${{ hashFiles('tooling/ci/require-adr-on-contract-change.sh') != '' }}
         run: bash tooling/ci/require-adr-on-contract-change.sh
-
+      - name: Wait for Postgres (IPv4 + credential check)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          for i in {1..20}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
+            echo "Waiting for Postgres... ($i)"
+            sleep 2
+          done
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -c "select 1"
       - name: Prepare DB schema
         run: |
           psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true

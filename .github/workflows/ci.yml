@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
       GITHUB_WEBHOOK_SECRET: testsecret
     services:
       postgres:
@@ -39,7 +39,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: ghtriage
         options: >-
-          --health-cmd "pg_isready -U postgres -d ghtriage"
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
@@ -79,6 +79,17 @@ jobs:
 
       - name: Build changed graph
         run: pnpm build
+      - name: Wait for Postgres (IPv4 + credential check)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          for i in {1..20}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
+            echo "Waiting for Postgres... ($i)"
+            sleep 2
+          done
+          # Sanity check over TCP (avoid Unix socket fallback)
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -c "select 1"
 
       - name: Prepare DB schema
         run: |

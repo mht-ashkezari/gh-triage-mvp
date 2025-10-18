@@ -16,7 +16,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
       GITHUB_WEBHOOK_SECRET: testsecret
     services:
       postgres:

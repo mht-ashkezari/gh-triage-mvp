@@ -56,13 +56,16 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Wait for Postgres
+      - name: Wait for Postgres (IPv4 + credential check)
+        env:
+          PGPASSWORD: postgres
         run: |
-          for i in {1..10}; do
-            pg_isready -h localhost -p 5432 -U postgres && break
-            echo "Waiting for Postgres..."
-            sleep 3
+          for i in {1..20}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
+            echo "Waiting for Postgres... ($i)"
+            sleep 2
           done
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -c "select 1"
 
       - name: Build packages
         run: |
@@ -70,11 +73,22 @@ jobs:
           pnpm -F @ghtriage/contracts build || true
           pnpm -F @ghtriage/bff build || true
 
+      - name: Wait for Postgres (IPv4 + credential check)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          for i in {1..20}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
+            echo "Waiting for Postgres... ($i)"
+            sleep 2
+          done
+          # Sanity check over TCP (avoid Unix socket fallback)
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -c "select 1"
+
       - name: Prepare database schema
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
         run: |
-          psql -U postgres -h localhost -p 5432 -c "CREATE DATABASE ghtriage;" || true
           psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true
           psql "$DATABASE_URL" -c '\dt'
 
@@ -85,7 +99,7 @@ jobs:
 
       - name: Run tests
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
           GITHUB_APP_ID: "123456"
           GITHUB_PRIVATE_KEY_BASE64: "dGVzdA=="
           GITHUB_WEBHOOK_SECRET: "testsecret"
