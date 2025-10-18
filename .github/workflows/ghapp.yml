@@ -26,21 +26,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    #Start a PostgreSQL service so the E2E tests can connect
     services:
       postgres:
         image: postgres:16
         ports:
-          - 5432:5432
+          - 127.0.0.1:5432:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: ghtriage
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
           --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 30
 
     steps:
       - uses: actions/checkout@v4
@@ -56,40 +55,37 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Wait for Postgres (IPv4 + credential check)
-        env:
-          PGPASSWORD: postgres
-        run: |
-          for i in {1..20}; do
-            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
-            echo "Waiting for Postgres... ($i)"
-            sleep 2
-          done
-          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -c "select 1"
-
       - name: Build packages
         run: |
           pnpm -F @ghtriage/schemas build || true
           pnpm -F @ghtriage/contracts build || true
           pnpm -F @ghtriage/bff build || true
 
+      # Single wait just before schema apply
       - name: Wait for Postgres (IPv4 + credential check)
+        shell: bash
         env:
           PGPASSWORD: postgres
         run: |
-          for i in {1..20}; do
+          set -euo pipefail
+          echo "Waiting for Postgres on 127.0.0.1:5432/ghtriage as postgres..."
+          for i in {1..60}; do
             pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
             echo "Waiting for Postgres... ($i)"
-            sleep 2
+            sleep 1
           done
-          # Sanity check over TCP (avoid Unix socket fallback)
-          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -c "select 1"
+          # sanity over TCP
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -c "select 1;"
 
       - name: Prepare database schema
+        shell: bash
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
         run: |
-          psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true
+          set -euo pipefail
+          # Fail the job if schema fails to apply
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql
+          echo "== Relations =="
           psql "$DATABASE_URL" -c '\dt'
 
       - name: Debug test discovery
