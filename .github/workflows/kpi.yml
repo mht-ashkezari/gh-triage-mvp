@@ -1,4 +1,5 @@
 name: KPI Spec
+
 on:
   workflow_dispatch:
   pull_request:
@@ -13,16 +14,65 @@ jobs:
   kpi:
     if: ${{ exists('packages/cli/package.json') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Keep consistent with other jobs
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
+      GITHUB_WEBHOOK_SECRET: testsecret
+
+    services:
+      postgres:
+        image: postgres:16
+        ports: ["127.0.0.1:5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghtriage
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
-        with: { node-version: "20.19.0", cache: "pnpm" }
+        with:
+          node-version: "20.19.0"
+          cache: "pnpm"
 
       - name: Enable pnpm (Corepack)
         run: corepack enable && corepack prepare pnpm@9.12.0 --activate
 
-      - run: pnpm -w i
+      - name: Install deps (workspace)
+        run: pnpm -w i
 
+      # --- DB readiness + schema (critical for webhook e2e bits) ---
+      - name: Wait for Postgres (IPv4 + credential check)
+        shell: bash
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          echo "Waiting for Postgres on 127.0.0.1:5432/ghtriage as postgres..."
+          for i in {1..60}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
+            echo "Waiting for Postgres... ($i)"
+            sleep 1
+          done
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -v ON_ERROR_STOP=1 -c "select 1;"
+
+      - name: Prepare DB schema (installations/repos)
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql
+          echo "== Relations =="
+          psql "$DATABASE_URL" -c '\dt'
+
+      # --- Your original KPI steps ---
       - run: pnpm --filter @ghtriage/kpi-spec run build
       - run: pnpm --filter @ghtriage/cli run build
       - run: pnpm --filter @ghtriage/cli run kpi:schema
