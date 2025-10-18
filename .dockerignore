@@ -1,5 +1,7 @@
+# keep existing
 scripts
 
+# trim heavy stuff everywhere
 **/node_modules
 **/.pnpm
 **/.turbo
@@ -17,7 +19,7 @@ devstack.log
 *.swp
 .DS_Store
 
-# don't ignore compose assets we need:
+# keep compose assets needed by CI
+!infra/docker/docker-compose.dev.yml
 !infra/docker/otel-collector.yaml
 !infra/docker/wiremock/mappings/**
-!infra/docker/docker-compose.dev.yml

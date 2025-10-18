@@ -8,7 +8,7 @@
 
 ```bash
 pnpm i
-docker compose -f infra/docker/docker-compose.dev.yml up -d postgres
+docker compose -f infra/docker/docker-compose.dev.yml up -d --no-build postgres
 pnpm -F @ghtriage/bff dev
 open http://localhost:3000/settings/integrations/github
 ```

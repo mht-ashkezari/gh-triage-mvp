@@ -20,7 +20,7 @@
 
 ```bash
 pnpm i
-docker compose -f infra/docker/docker-compose.dev.yml up -d postgres redis azurite otel-collector jaeger
+docker compose -f infra/docker/docker-compose.dev.yml up -d --no-build postgres redis azurite otel-collector jaeger
 pnpm dev
 open http://localhost:3000
 ```

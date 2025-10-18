@@ -38,7 +38,7 @@ jobs:
 
       - name: Start core stack
         run: |
-          docker compose -f infra/docker/docker-compose.dev.yml up -d \
+          docker compose -f infra/docker/docker-compose.dev.yml up -d --no-build \
             postgres redis azurite otel-collector jaeger
 
       - name: Show container ports
