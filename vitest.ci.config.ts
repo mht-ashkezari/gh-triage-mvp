@@ -33,7 +33,7 @@ export default defineConfig({
             ],
         },
 
-        include: [],
+        include: ['tests/**/*.{spec,test}.ts'],
         exclude: ['apps/**', '**/cypress/**'],
 
         projects: [

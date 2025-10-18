@@ -76,4 +76,9 @@ jobs:
           psql "$DATABASE_URL" -c '\dt'
 
       - name: Run SELACC e2e (pin to root project and exact file)
-        run: pnpm exec vitest run --config vitest.ci.config.ts --project root tests/selacc.webhook.e2e.spec.ts
+        run: |
+          pnpm exec vitest run \
+            --config vitest.ci.config.ts \
+            --project root \
+            --include tests/selacc.webhook.e2e.spec.ts \
+            --reporter verbose

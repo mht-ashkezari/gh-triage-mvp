@@ -29,7 +29,7 @@
     "test:selacc": "pnpm -s run test:selacc:unit && pnpm -s run test:selacc:e2e",
     "test:selacc:watch": "vitest --config vitest.ci.config.ts --watch tests/selacc*.spec.ts",
     "test:selacc:unit": "vitest run --config vitest.ci.config.ts --project root tests/selacc.access.spec.ts tests/selacc.selection.spec.ts",
-    "test:selacc:e2e": "SELACC_APP_MODULE_PATH=apps/bff/src/app.module GITHUB_WEBHOOK_SECRET=testsecret vitest run --config vitest.ci.config.ts --project root tests/selacc.webhook.e2e.spec.ts",
+    "test:selacc:e2e": "SELACC_APP_MODULE_PATH=apps/bff/src/app.module GITHUB_WEBHOOK_SECRET=testsecret vitest run --config vitest.ci.config.ts --project root --include tests/selacc.webhook.e2e.spec.ts",
     "test:docs": "pnpm diagrams:build && pnpm diagrams:check",
     "diagrams:build": "bash tooling/render_diagrams.sh",
     "diagrams:check": "tsx tooling/check_component_ids.ts",
