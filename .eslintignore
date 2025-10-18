@@ -1,0 +1,4 @@
+# Config files we don't type-check with ESLint
+**/vitest*.config.ts
+**/vite.config.*.*
+**/*.config.{ts,js,mjs,cjs}

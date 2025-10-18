@@ -1,4 +1,3 @@
-# .github/workflows/selacc-tests.yml
 name: SELACC Tests
 on:
   pull_request:
@@ -15,9 +14,9 @@ on:
 jobs:
   selacc-unit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      # Enable Corepack BEFORE setup-node when using cache: pnpm
       - run: corepack enable
       - uses: actions/setup-node@v4
         with:
@@ -26,16 +25,32 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - run: corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
-      - run: pnpm test:selacc
+      - name: Run unit selection/access tests
+        run: pnpm test:selacc:unit
 
   selacc-e2e:
+    needs: selacc-unit
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       SELACC_APP_MODULE_PATH: apps/bff/src/app.module
       GITHUB_WEBHOOK_SECRET: testsecret
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
+    services:
+      postgres:
+        image: postgres:16
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghtriage
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
     steps:
       - uses: actions/checkout@v4
-      # Enable Corepack BEFORE setup-node when using cache: pnpm
       - run: corepack enable
       - uses: actions/setup-node@v4
         with:
@@ -44,4 +59,24 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - run: corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
-      - run: pnpm test:selacc:e2e
+
+      - name: Show test file (sanity)
+        run: ls -la tests && test -f tests/selacc.webhook.e2e.spec.ts
+
+      - name: Prepare DB schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Waiting for Postgres..."
+          for i in {1..40}; do
+            if pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage; then break; fi
+            sleep 1
+          done
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql
+          psql "$DATABASE_URL" -c '\dt'
+
+      - name: Run SELACC e2e (pin to root project and exact file)
+        run: |
+          pnpm exec vitest --version
+          pnpm exec vitest list --config vitest.e2e.config.ts || true
+          pnpm exec vitest run --config vitest.e2e.config.ts --reporter verbose

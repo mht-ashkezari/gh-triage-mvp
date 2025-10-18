@@ -3,18 +3,20 @@ name: gh-triage-dev
 services:
   postgres:
     image: postgres:16
+    container_name: gh-triage-dev-postgres-1
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: devpass
-      POSTGRES_DB: triage
-    ports: [ "55432:5432" ]
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ghtriage
+    ports: [ "127.0.0.1:5432:5432" ]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d triage"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ghtriage"]
       interval: 5s
       timeout: 3s
       retries: 20
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ../sql:/docker-entrypoint-initdb.d:ro
     networks: [ devnet ]
 
   redis:

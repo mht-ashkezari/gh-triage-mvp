@@ -17,13 +17,14 @@
         "bin"
     ],
     "dependencies": {
-        "@ghtriage/kpi-spec": "workspace:^",
+        "@ghtriage/kpi-spec": "workspace:*",
         "@octokit/app": "^14.0.0",
         "@octokit/plugin-paginate-rest": "^11.0.0",
         "@octokit/rest": "^20.0.0",
         "csv-writer": "^1.6.0",
         "p-limit": "^6.0.0",
-        "yaml": "^2.5.0"
+        "yaml": "^2.5.0",
+        "zod-to-json-schema": "^3.23.8"
     },
     "devDependencies": {
         "@types/node": "^20.11.0",

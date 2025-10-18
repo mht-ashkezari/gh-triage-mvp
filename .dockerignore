@@ -1,1 +1,25 @@
+# keep existing
 scripts
+
+# trim heavy stuff everywhere
+**/node_modules
+**/.pnpm
+**/.turbo
+**/dist
+**/.cache
+coverage
+*.log
+devstack.log
+
+# VCS / CI
+.git
+.github
+
+# editor junk
+*.swp
+.DS_Store
+
+# keep compose assets needed by CI
+!infra/docker/docker-compose.dev.yml
+!infra/docker/otel-collector.yaml
+!infra/docker/wiremock/mappings/**

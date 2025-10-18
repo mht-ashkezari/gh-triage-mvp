@@ -1,0 +1,111 @@
+name: GH App (P2.1)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/bff/src/github/**"
+      - "apps/bff/test/**"
+      - "packages/contracts/src/github.ts"
+      - "infra/sql/002_ghapp.sql"
+      - ".github/workflows/ghapp.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/bff/src/github/**"
+      - "apps/bff/test/**"
+      - "packages/contracts/src/github.ts"
+      - "infra/sql/002_ghapp.sql"
+      - ".github/workflows/ghapp.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  ghapp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 127.0.0.1:5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghtriage
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+          run_install: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: |
+          pnpm -F @ghtriage/schemas build || true
+          pnpm -F @ghtriage/contracts build || true
+          pnpm -F @ghtriage/bff build || true
+
+      # Single wait just before schema apply
+      - name: Wait for Postgres (IPv4 + credential check)
+        shell: bash
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          echo "Waiting for Postgres on 127.0.0.1:5432/ghtriage as postgres..."
+          for i in {1..60}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
+            echo "Waiting for Postgres... ($i)"
+            sleep 1
+          done
+          # sanity over TCP
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -c "select 1;"
+
+      - name: Prepare database schema
+        shell: bash
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
+        run: |
+          set -euo pipefail
+          # Fail the job if schema fails to apply
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql
+          echo "== Relations =="
+          psql "$DATABASE_URL" -c '\dt'
+
+      - name: Debug test discovery
+        run: |
+          pwd
+          ls -la apps/bff/test
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
+          GITHUB_APP_ID: "123456"
+          GITHUB_PRIVATE_KEY_BASE64: "dGVzdA=="
+          GITHUB_WEBHOOK_SECRET: "testsecret"
+        run: |
+          pnpm -F @ghtriage/bff test:unit
+          pnpm -F @ghtriage/bff test:e2e
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghapp-coverage
+          path: apps/bff/coverage

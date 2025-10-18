@@ -27,6 +27,22 @@ jobs:
   baseline:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
+      GITHUB_WEBHOOK_SECRET: testsecret
+    services:
+      postgres:
+        image: postgres:16
+        ports: ["127.0.0.1:5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghtriage
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,7 +79,27 @@ jobs:
 
       - name: Build changed graph
         run: pnpm build
+      - name: Wait for Postgres (service container, IPv4)
+        shell: bash
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          echo "Waiting for Postgres on 127.0.0.1:5432/ghtriage as postgres..."
+          for i in {1..60}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
+            sleep 1
+          done
 
+      - name: Prepare DB schema (installations/repos)
+        shell: bash
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }} # e.g. postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
+        run: |
+          set -euo pipefail
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql
+          echo "== Relations =="
+          psql "$DATABASE_URL" -c '\dt'
       - name: KPI Schema + Validation
         run: pnpm vitest run --config vitest.ci.config.ts
 

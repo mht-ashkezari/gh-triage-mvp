@@ -32,7 +32,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     env:
-      ACT: ${{ secrets.ACT}}
+      ACT: ${{ secrets.ACT }}
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
+    services:
+      postgres:
+        image: postgres:16
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghtriage
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -66,8 +81,25 @@ jobs:
       - name: Require ADR on contract change
         if: ${{ hashFiles('tooling/ci/require-adr-on-contract-change.sh') != '' }}
         run: bash tooling/ci/require-adr-on-contract-change.sh
+      - name: Wait for Postgres (IPv4 + credential check)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          for i in {1..20}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
+            echo "Waiting for Postgres... ($i)"
+            sleep 2
+          done
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -c "select 1"
+      - name: Prepare DB schema
+        run: |
+          psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true
+          psql "$DATABASE_URL" -c '\dt'
 
       - name: Run contract/unit tests
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          GITHUB_WEBHOOK_SECRET: testsecret
         run: pnpm ci:test
 
       - name: Upload contract artifacts

@@ -10,5 +10,20 @@
     "verbatimModuleSyntax": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
-  }
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "packages/schemas"
+    },
+    {
+      "path": "packages/contracts"
+    },
+    {
+      "path": "packages/kpi-spec"
+    },
+    {
+      "path": "packages/cli"
+    }
+  ]
 }

@@ -1,0 +1,29 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmitOnError": true,
+        "sourceMap": false,
+        "declaration": true,
+        "declarationMap": false,
+        "removeComments": true,
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "composite": true,
+        "incremental": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "test",
+        "**/*.spec.ts",
+        "**/__mocks__/**",
+        "**/__tests__/**",
+        "**/*.test.ts"
+    ],
+    "references": []
+}
