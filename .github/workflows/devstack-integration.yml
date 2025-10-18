@@ -40,8 +40,24 @@ jobs:
         run: |
           docker compose -f infra/docker/docker-compose.dev.yml up -d \
             postgres redis azurite otel-collector jaeger
-
-      - name: Wait for services (pg_isready + Redis port)
+      - name: Discover Postgres host port
+        id: pgport
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Ask compose what host port maps to container:5432 (first mapping wins)
+          PORT="$(docker compose -f infra/docker/docker-compose.dev.yml port postgres 5432 | sed -E 's/.*:([0-9])$/\1/')"
+          # Fallbacks in case compose doesn't expose a port
+          PORT="${PORT:-55432}"
+          echo "Resolved Postgres host port: ${PORT}"
+          {
+            echo "PGHOST=127.0.0.1"
+            echo "PGPORT=${PORT}"
+            echo "PGUSER=postgres"
+            echo "PGDATABASE=triage"
+            echo "PGPASSWORD=devpass"
+          } >> "$GITHUB_ENV"
+      - name: Wait for services (pg_isready  Redis port)
         shell: bash
         run: |
           set -euo pipefail
@@ -58,27 +74,21 @@ jobs:
             sleep 1
           done
 
-      - name: Wait for Postgres (IPv4 + credential check)
-        env:
-          PGHOST: 127.0.0.1
-          PGPORT: "55432"
-          PGUSER: postgres
-          PGDATABASE: triage
-          PGPASSWORD: devpass
+      - name: Wait for Postgres (IPv4  credential check)
         shell: bash
         run: |
           set -euo pipefail
-          echo "Waiting for Postgres on ${PGHOST}:${PGPORT}/${PGDATABASE} as ${PGUSER}..."
+          echo "Waiting for Postgres on ${PGHOST:-127.0.0.1}:${PGPORT:-5432}/${PGDATABASE:-triage} as ${PGUSER:-postgres}..."
           for i in {1..60}; do
             pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" && break
             sleep 1
           done
-          # final credentialed check + smoke query
+          # final credentialed check  smoke query
           psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 -c "select 1;"
 
       - name: Run DEVSTACK sanity tests
         env:
-          DATABASE_URL: postgresql://postgres:devpass@localhost:55432/triage
+          DATABASE_URL: postgresql://${{ env.PGUSER }}:${{ env.PGPASSWORD }}@${{ env.PGHOST }}:${{ env.PGPORT }}/${{ env.PGDATABASE }}
           REDIS_URL: redis://localhost:6379
         run: pnpm test:bff:devstack
 
