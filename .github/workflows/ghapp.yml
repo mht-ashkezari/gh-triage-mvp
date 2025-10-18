@@ -56,6 +56,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Wait for Postgres
+        run: |
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5432 -U postgres && break
+            echo "Waiting for Postgres..."
+            sleep 3
+          done
+
       - name: Build packages
         run: |
           pnpm -F @ghtriage/schemas build || true
@@ -66,18 +74,24 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
         run: |
+          psql -U postgres -h localhost -p 5432 -c "CREATE DATABASE ghtriage;" || true
           psql "$DATABASE_URL" -f infra/sql/002_ghapp.sql || true
           psql "$DATABASE_URL" -c '\dt'
 
-      - name: Run GH App tests (unit + e2e)
+      - name: Debug test discovery
+        run: |
+          pwd
+          ls -la apps/bff/test
+
+      - name: Run tests
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghtriage
           GITHUB_APP_ID: "123456"
           GITHUB_PRIVATE_KEY_BASE64: "dGVzdA=="
           GITHUB_WEBHOOK_SECRET: "testsecret"
-          CORS_ORIGIN: "http://localhost:3000"
         run: |
-          pnpm -F @ghtriage/bff vitest run --config apps/bff/vitest.config.ts --coverage
+          pnpm -F @ghtriage/bff test:unit
+          pnpm -F @ghtriage/bff test:e2e
 
       - name: Upload coverage
         if: always()
