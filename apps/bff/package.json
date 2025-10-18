@@ -10,7 +10,8 @@
     "test:unit": "vitest run --coverage",
     "test:e2e": "vitest run test --coverage",
     "lint": "eslint --ext .ts --max-warnings 0",
-    "prepare": "pnpm build"
+    "prepare": "pnpm build",
+    "pretest:e2e": "pnpm -w db:wait && pnpm -w db:prepare"
   },
   "dependencies": {
     "@octokit/app": "^14.0.0",
