@@ -1,3 +1,4 @@
+// eslint.config.js
 import js from "@eslint/js";
 import ts from "typescript-eslint";
 
@@ -20,7 +21,7 @@ export default [
     // --- Base JS rules ---
     js.configs.recommended,
 
-    // --- TypeScript & NestJS support ---
+    // --- TypeScript (type-aware for app code) ---
     ...ts.configs.recommended,
     {
         files: ["**/*.ts"],
@@ -45,12 +46,23 @@ export default [
             },
         },
         rules: {
-            // General hygiene
             "no-undef": "off",
             "no-cond-assign": "off",
             "prefer-const": "warn",
             "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
             "@typescript-eslint/no-explicit-any": "off",
+        },
+    },
+
+    // --- ⬇ NEW: do NOT require a TS project for config scripts ⬇ ---
+    {
+        files: [
+            "**/vitest*.config.ts",
+            "**/vite.config.*.*",
+            "**/*.config.{ts,js,mjs,cjs}",
+        ],
+        languageOptions: {
+            parserOptions: { project: null }, // disable type-aware parsing for these
         },
     },
 ];

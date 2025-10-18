@@ -12,7 +12,6 @@ export default defineConfig({
         },
     },
     test: {
-        // global coverage settings for CI
         coverage: {
             provider: 'v8',
             reporter: ['text', 'html', 'lcov', 'json', 'json-summary'],
@@ -42,7 +41,8 @@ export default defineConfig({
                 test: {
                     name: 'root',
                     include: ['tests/**/*.spec.ts'],
-                    exclude: ['tests/selacc.webhook.e2e.spec.ts'],
+                    // IMPORTANT: let the e2e spec run, even if a parent exclude would match
+                    exclude: [],
                     setupFiles: ['./vitest.setup.ts'],
                     environment: 'node',
                 },
