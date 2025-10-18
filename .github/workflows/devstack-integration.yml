@@ -40,6 +40,9 @@ jobs:
         run: |
           docker compose -f infra/docker/docker-compose.dev.yml up -d \
             postgres redis azurite otel-collector jaeger
+      - name: Show container ports
+        run: docker ps --format '{{.Names}}\t{{.Ports}}'
+
       - name: Discover Postgres host port
         id: pgport
         shell: bash
@@ -48,7 +51,7 @@ jobs:
           # Ask compose what host port maps to container:5432 (first mapping wins)
           PORT="$(docker compose -f infra/docker/docker-compose.dev.yml port postgres 5432 | sed -E 's/.*:([0-9])$/\1/')"
           # Fallbacks in case compose doesn't expose a port
-          PORT="${PORT:-55432}"
+          PORT="${PORT:-5432}"
           echo "Resolved Postgres host port: ${PORT}"
           {
             echo "PGHOST=127.0.0.1"

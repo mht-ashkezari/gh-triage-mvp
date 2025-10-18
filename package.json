@@ -56,7 +56,7 @@
     "test:coverage": "vitest run --coverage",
     "test:all": "vitest run --config vitest.full.config.ts",
     "test:bff:devstack": "vitest run --config vitest.full.config.ts apps/bff/test/devstack.spec.ts",
-    "devstack:test": "pnpm devstack:up && wait-port 127.0.0.1:55432 && wait-port 127.0.0.1:6379 && cross-env DOTENV_CONFIG_QUIET=true DEVSTACK=1 vitest run --config vitest.full.config.ts apps/bff/test/devstack.spec.ts; code=$?; pnpm devstack:down; exit $code",
+    "devstack:test": "pnpm devstack:up && wait-port 127.0.0.1:5432 && wait-port 127.0.0.1:6379 && cross-env DOTENV_CONFIG_QUIET=true DEVSTACK=1 vitest run --config vitest.full.config.ts apps/bff/test/devstack.spec.ts; code=$?; pnpm devstack:down; exit $code",
     "test:local:all": "pnpm ci:test && pnpm devstack:test",
     "new:adr": "node tooling/dev/new-adr.mjs",
     "precontracts:openapi": "pnpm -w --filter @ghtriage/schemas build",

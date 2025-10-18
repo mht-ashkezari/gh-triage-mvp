@@ -77,6 +77,6 @@ jobs:
 
       - name: Run SELACC e2e (pin to root project and exact file)
         run: |
-          pnpm exec vitest run tests/selacc_webhook.e2e.spec.ts \
-            --config vitest.ci.config.ts \
-            --reporter=verbose
+          pnpm exec vitest --version
+          pnpm exec vitest list --config vitest.e2e.config.ts || true
+          pnpm exec vitest run --config vitest.e2e.config.ts --reporter verbose

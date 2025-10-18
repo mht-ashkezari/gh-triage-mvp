@@ -14,7 +14,7 @@ maybe('DEVSTACK sanity', () => {
             const url =
                 process.env.DATABASE_URL ??
                 process.env.POSTGRES_URL ??
-                'postgres://postgres:devpass@127.0.0.1:55432/triage';
+                'postgres://postgres:devpass@127.0.0.1:5432/triage';
 
             let lastErr: unknown;
 
