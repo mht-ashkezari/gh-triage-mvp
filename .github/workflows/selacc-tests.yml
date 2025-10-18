@@ -14,6 +14,7 @@ on:
 jobs:
   selacc-unit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - run: corepack enable
@@ -24,12 +25,12 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - run: corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
-
       - run: pnpm test:selacc:unit
 
   selacc-e2e:
     needs: selacc-unit
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       SELACC_APP_MODULE_PATH: apps/bff/src/app.module
       GITHUB_WEBHOOK_SECRET: testsecret
@@ -44,9 +45,9 @@ jobs:
           POSTGRES_DB: ghtriage
         options: >-
           --health-cmd "pg_isready -U postgres -d ghtriage"
-          --health-interval 5s
+          --health-interval 2s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 30
     steps:
       - uses: actions/checkout@v4
       - run: corepack enable
@@ -57,9 +58,24 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - run: corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
+
       - name: Prepare DB schema
+        shell: bash
         run: |
-          pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage
+          set -euo pipefail
+          echo "Waiting for Postgres to be ready..."
+          for i in {1..40}; do
+            if pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage; then
+              break
+            fi
+            sleep 1
+          done
+          echo "Applying schema..."
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql
+          echo "Listing tables:"
           psql "$DATABASE_URL" -c '\dt'
-      - run: pnpm test:selacc:e2e
+          echo "\d installations" | psql "$DATABASE_URL" || true
+          echo "\d repos" | psql "$DATABASE_URL" || true
+
+      - name: Run SELACC e2e (verbose)
+        run: pnpm test:selacc:e2e --reporter=verbose --logHeapUsage
