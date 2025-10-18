@@ -25,7 +25,8 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - run: corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
-      - run: pnpm test:selacc:unit
+      - name: Run unit selection/access tests
+        run: pnpm test:selacc:unit
 
   selacc-e2e:
     needs: selacc-unit
@@ -59,23 +60,21 @@ jobs:
       - run: corepack prepare pnpm@9.12.0 --activate
       - run: pnpm i --frozen-lockfile
 
+      # (Optional) sanity to prove the file is here
+      - name: Show test file
+        run: ls -la tests && test -f tests/selacc.webhook.e2e.spec.ts
+
       - name: Prepare DB schema
         shell: bash
         run: |
           set -euo pipefail
-          echo "Waiting for Postgres to be ready..."
+          echo "Waiting for Postgres..."
           for i in {1..40}; do
-            if pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage; then
-              break
-            fi
+            if pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage; then break; fi
             sleep 1
           done
-          echo "Applying schema..."
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql
-          echo "Listing tables:"
           psql "$DATABASE_URL" -c '\dt'
-          echo "\d installations" | psql "$DATABASE_URL" || true
-          echo "\d repos" | psql "$DATABASE_URL" || true
 
-      - name: Run SELACC e2e (verbose)
-        run: pnpm test:selacc:e2e --reporter=verbose --logHeapUsage
+      - name: Run SELACC e2e
+        run: pnpm exec vitest run --config vitest.ci.config.ts tests/selacc.webhook.e2e.spec.ts
