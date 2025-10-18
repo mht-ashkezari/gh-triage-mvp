@@ -16,7 +16,6 @@
     "docs": "pnpm docs:bundle",
     "kpi:md": "node tooling/print-kpis.mjs",
     "kpi:check": "tsx --tsconfig tooling/tsconfig.tooling.json tooling/validate-kpis.ts docs/kpis.yaml packages/schemas/kpis.schema.json",
-    "test:kpi": "vitest run --config vitest.ci.config.ts",
     "schema:kpi": "pnpm -w --filter @ghtriage/schemas build",
     "ci:kpi": "pnpm schema:kpi && pnpm kpi:check",
     "score": "ghtriage repos score",
@@ -62,7 +61,13 @@
     "precontracts:openapi": "pnpm -w --filter @ghtriage/schemas build",
     "precontracts:jsonschema": "pnpm -w --filter @ghtriage/schemas build",
     "predocs:api": "pnpm -w --filter @ghtriage/schemas build",
-    "docs:server": "http-server docs/api -p 8088 -c-1"
+    "docs:server": "http-server docs/api -p 8088 -c-1",
+    "db:wait": "bash -lc 'for i in {1..60}; do pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break; echo Waiting for Postgres...; sleep 1; done'",
+    "db:prepare": "bash -lc 'if command -v psql >/dev/null 2>&1; then psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f infra/sql/002_ghapp.sql && psql \"$DATABASE_URL\" -c \"\\\\dt\"; else echo \"psql not found; skipping schema\"; fi'",
+    "pretest:kpi": "pnpm db:wait && pnpm db:prepare",
+    "test:kpi": "vitest run --config vitest.ci.config.ts",
+    "preci:test": "pnpm db:wait && pnpm db:prepare",
+    "pretest:e2e": "pnpm -w db:wait && pnpm -w db:prepare"
   },
   "keywords": [],
   "author": "",
