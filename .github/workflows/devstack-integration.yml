@@ -40,6 +40,7 @@ jobs:
         run: |
           docker compose -f infra/docker/docker-compose.dev.yml up -d \
             postgres redis azurite otel-collector jaeger
+
       - name: Show container ports
         run: docker ps --format '{{.Names}}\t{{.Ports}}'
 
@@ -48,46 +49,59 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Ask compose what host port maps to container:5432 (first mapping wins)
-          PORT="$(docker compose -f infra/docker/docker-compose.dev.yml port postgres 5432 | sed -E 's/.*:([0-9])$/\1/')"
-          # Fallbacks in case compose doesn't expose a port
-          PORT="${PORT:-5432}"
+          # Ask compose what host port maps to container:5432
+          # Example output: "0.0.0.0:5432" or "127.0.0.1:5432"
+          RAW="$(docker compose -f infra/docker/docker-compose.dev.yml port postgres 5432 || true)"
+          PORT="$(awk -F: '{print $NF}' <<<"$RAW")"
+          PORT="${PORT:-5432}"   # fallback if compose doesn't report
           echo "Resolved Postgres host port: ${PORT}"
+
           {
             echo "PGHOST=127.0.0.1"
             echo "PGPORT=${PORT}"
             echo "PGUSER=postgres"
-            echo "PGDATABASE=triage"
-            echo "PGPASSWORD=devpass"
+            echo "PGDATABASE=ghtriage"  # <-- align with compose
+            echo "PGPASSWORD=postgres"  # <-- align with compose
           } >> "$GITHUB_ENV"
-      - name: Wait for services (pg_isready  Redis port)
+
+      - name: Wait for services (pg_isready + Redis port)
         shell: bash
         run: |
           set -euo pipefail
+
+          # Inside the container: readiness (uses DB ghtriage to match compose)
           for i in {1..60}; do
-            if docker exec gh-triage-dev-postgres-1 pg_isready -U postgres -d triage; then
-              echo "Postgres is ready"
+            if docker exec gh-triage-dev-postgres-1 pg_isready -U postgres -d ghtriage; then
+              echo "Postgres (in-container) is ready"
               break
             fi
             sleep 1
           done
 
+          # Redis on host port
           for i in {1..60}; do
             (echo > /dev/tcp/127.0.0.1/6379) >/dev/null 2>&1 && { echo "Redis is ready"; break; }
             sleep 1
           done
 
-      - name: Wait for Postgres (IPv4  credential check)
+      - name: Wait for Postgres (IPv4 + credential check)
         shell: bash
         run: |
           set -euo pipefail
-          echo "Waiting for Postgres on ${PGHOST:-127.0.0.1}:${PGPORT:-5432}/${PGDATABASE:-triage} as ${PGUSER:-postgres}..."
-          for i in {1..60}; do
+
+          echo "== docker port mappings =="
+          docker ps --format '{{.Names}}\t{{.Ports}}'
+          docker compose -f infra/docker/docker-compose.dev.yml port postgres 5432 || true
+          echo "================================"
+
+          echo "Waiting for Postgres on ${PGHOST}:${PGPORT}/${PGDATABASE} as ${PGUSER}..."
+          for i in {1..90}; do
             pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" && break
             sleep 1
           done
-          # final credentialed check  smoke query
-          psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 -c "select 1;"
+
+          # final credentialed smoke query (hardcode host/port to dodge any stray env)
+          psql -h 127.0.0.1 -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 -c "select 1;"
 
       - name: Run DEVSTACK sanity tests
         env:
