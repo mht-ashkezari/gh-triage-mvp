@@ -1,8 +1,6 @@
 # GitHub Triage & Release Notes (MVP)
 
-
-[![Status](https://img.shields.io/badge/status-Alpha-orange)](#)
-
+[![Status: Alpha](https://img.shields.io/badge/status-alpha-blue)](#project-status)
 
 [![CI](https://img.shields.io/github/actions/workflow/status/mht-ashkezari/gh-triage-mvp/ci.yml?branch=main)](https://github.com/mht-ashkezari/gh-triage-mvp/actions/workflows/ci.yml)
 [![Contracts](https://img.shields.io/github/actions/workflow/status/mht-ashkezari/gh-triage-mvp/contracts.yml?label=contracts&branch=main)](https://github.com/mht-ashkezari/gh-triage-mvp/actions/workflows/contracts.yml)
@@ -55,11 +53,9 @@ pnpm contracts:openapi && pnpm contracts:jsonschema
 pnpm docs:bundle        # writes docs/api/* and docs/site-docs.zip
 ```
 
-
 - **How-to guides:**  
   - [GitHub App install & OAuth](./docs/howto/ghapp-github-install-oauth.md)  
   - [ngrok webhook tunnel](./docs/howto/ngrok_webhook.md)
-
 
 ## 5) Contributing
 
@@ -101,3 +97,7 @@ pnpm ci:test            # CI config (coverage, etc.)
 ## 8) License
 
 This project is licensed under **MIT** — see [`LICENSE`](./LICENSE).
+
+## Project status
+
+Alpha — under active development. Expect breaking changes.
