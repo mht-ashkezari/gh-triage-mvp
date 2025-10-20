@@ -1,4 +1,5 @@
 # Code of Conduct
 
-Be respectful. Assume positive intent. No harassment or discrimination.
-Report incidents privately to maintainers via the contact in SECURITY.md.
+This project follows the [Contributor Covenant v2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
+
+To report incidents, use the private channel described in **SECURITY.md**.

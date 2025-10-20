@@ -1,10 +1,16 @@
 # GitHub Triage & Release Notes (MVP)
 
-[![CI](https://img.shields.io/github/actions/workflow/status/<you>/gh-triage-mvp/ci.yml?branch=main)](./.github/workflows/ci.yml)
-[![Contracts](https://img.shields.io/github/actions/workflow/status/<you>/gh-triage-mvp/contracts.yml?label=contracts)](./docs/openapi)
-[![Security](https://img.shields.io/github/actions/workflow/status/<you>/gh-triage-mvp/security.yml?label=security)](./.github/workflows/security.yml)
+
+[![Status](https://img.shields.io/badge/status-Alpha-orange)](#)
+
+
+[![CI](https://img.shields.io/github/actions/workflow/status/mht-ashkezari/gh-triage-mvp/ci.yml?branch=main)](https://github.com/mht-ashkezari/gh-triage-mvp/actions/workflows/ci.yml)
+[![Contracts](https://img.shields.io/github/actions/workflow/status/mht-ashkezari/gh-triage-mvp/contracts.yml?label=contracts&branch=main)](https://github.com/mht-ashkezari/gh-triage-mvp/actions/workflows/contracts.yml)
+[![Security](https://img.shields.io/github/actions/workflow/status/mht-ashkezari/gh-triage-mvp/security.yml?label=security&branch=main)](https://github.com/mht-ashkezari/gh-triage-mvp/actions/workflows/security.yml)
 [![Docs](https://img.shields.io/badge/docs-private%20artifact-blue)](#4-documentation)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+
+**Project status:** Alpha — under active development. Expect breaking changes.
 
 > **What**: Azure-first platform that ingests GitHub issues/PRs and produces triage suggestions + release notes with strict JSON contracts.  
 > **Why**: Speed up OSS & product maintenance while proving production skills (LLM/ML, MLOps, DevOps, Full-stack).
