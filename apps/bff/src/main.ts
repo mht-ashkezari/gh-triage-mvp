@@ -1,10 +1,10 @@
+import "dotenv/config";
 // apps/bff/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import express from 'express';
 
 async function bootstrap() {
-    // Disable Nest's built-in body parser so ours runs exactly once
     const app = await NestFactory.create(AppModule, { bodyParser: false });
 
     app.use(express.json({
@@ -15,7 +15,7 @@ async function bootstrap() {
         verify: (req: any, _res, buf) => { req.rawBody = buf as Buffer; },
     }));
 
-    const port = process.env.PORT || 4100;
+    const port = Number(process.env.BFF_PORT ?? process.env.PORT ?? 4100);
     await app.listen(port);
     console.log(`BFF running on http://localhost:${port}`);
 }
