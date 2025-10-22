@@ -2,13 +2,14 @@
     "name": "@ghtriage/runs",
     "version": "0.0.1",
     "private": true,
+    "type": "module",
     "scripts": {
-        "dev": "ts-node src/main.ts",
+        "dev": "tsx src/main.ts",
         "build": "tsc -p tsconfig.build.json",
-        "start": "node dist/index.js",
-        "test": "vitest run",
+        "start": "node dist/main.js",
+        "test": "vitest",
         "typecheck": "tsc -p tsconfig.json --noEmit",
-        "test:with-server": "bash -lc 'set -euo pipefail; LOG=/tmp/runs.test.log; PID=/tmp/runs.pid; nohup pnpm dev >\"$LOG\" 2>&1 & echo $! > \"$PID\"; trap \"kill \\$(cat $PID) 2>/dev/null || true\" EXIT; for i in {1..45}; do curl -sf \"http://localhost:${RUNS_PORT:-4101}/health\" >/dev/null && break; sleep 1; done; if ! curl -sf \"http://localhost:${RUNS_PORT:-4101}/health\" >/dev/null; then echo \"[test] runs never became healthy\"; tail -n 200 \"$LOG\" || true; exit 1; fi; vitest run || { code=$?; echo \"[test] vitest failed, last server logs:\"; tail -n 200 \"$LOG\" || true; exit $code; }'"
+        "test:with-server": "bash -lc 'set -euo pipefail; LOG=/tmp/runs.test.log; PID=/tmp/runs.pid; setsid pnpm dev >\"$LOG\" 2>&1 & echo $! > \"$PID\"; trap \"kill -- -$(cat $PID) 2>/dev/null || true\" EXIT; for i in {1..45}; do curl -sf \"http://localhost:${RUNS_PORT:-4101}/health\" >/dev/null && break; sleep 1; done; if ! curl -sf \"http://localhost:${RUNS_PORT:-4101}/health\" >/dev/null; then echo \"[test] runs never became healthy\"; (tail -n 200 \"$LOG\" || true); exit 1; fi; vitest run || { code=$?; echo \"[test] vitest failed, last server logs:\"; (tail -n 200 \"$LOG\" || true); exit $code; }'"
     },
     "dependencies": {
         "body-parser": "^1.20.3",
