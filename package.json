@@ -78,7 +78,10 @@
     "runs:demo:a": "node -e \"fetch('http://localhost:'+(process.env.RUNS_PORT||4101)+'/runs/A',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({repo_id:'microsoft/vscode',since:'2024-01-01'})}).then(r=>r.json()).then(j=>console.log(j))\"",
     "devstack:ready": "pnpm devstack:up && pnpm db:wait && pnpm -w db:prepare",
     "runs:smoke": "node -e \"fetch('http://localhost:'+(process.env.RUNS_PORT||4101)+'/runs/A',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({repo_id:'octocat/hello'})}).then(r=>r.json()).then(j=>console.log(j))\"",
-    "test:runs": "pnpm -F @ghtriage/runs test:with-server"
+    "test:runs": "pnpm -F @ghtriage/runs test:with-server",
+    "devstack:assert": "bash -lc 'docker info >/dev/null 2>&1 || { echo \"[devstack] Docker daemon not running. Start Docker Desktop or systemd service, then retry.\" >&2; exit 1; }'",
+    "pretest:runs": "pnpm devstack:assert && pnpm devstack:up && pnpm db:wait && pnpm -w db:prepare",
+    "psql:env": "dotenv -e .env -- psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -c",
   },
   "keywords": [],
   "author": "",
