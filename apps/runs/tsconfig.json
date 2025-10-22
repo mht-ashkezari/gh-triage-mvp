@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "strict": true,
+        "skipLibCheck": true,
+        // dev/typecheck should cover BOTH src and test
+        "rootDir": ".",
+        // useful in this repo
+        "resolveJsonModule": true,
+        "verbatimModuleSyntax": true,
+        // keep interop flags (match current style)
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "useDefineForClassFields": true,
+        // dev-only types
+        "types": [
+            "node",
+            "vitest"
+        ],
+        // outDir can stay; build uses tsconfig.build.json anyway
+        "outDir": "dist"
+    },
+    "include": [
+        "src",
+        "test",
+        "vitest.config.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

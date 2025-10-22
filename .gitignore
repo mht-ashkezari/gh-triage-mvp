@@ -150,3 +150,9 @@ docs/site-docs.zip
 
 docs/api/**
 docs/site-docs/zip
+
+
+# Local secrets (do not commit)
+.secrets
+.env
+.env.*

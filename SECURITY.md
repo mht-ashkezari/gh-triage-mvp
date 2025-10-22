@@ -2,8 +2,8 @@
 
 ## Reporting
 
-Please report vulnerabilities privately via email: <security@example.com>  
-Do not open public issues for sensitive reports.
+Please report vulnerabilities **privately via GitHub Security Advisories** (this repository → **Security** tab → **Report a vulnerability**).
+Do **not** open public issues for sensitive reports.
 
 ## Scope
 

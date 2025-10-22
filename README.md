@@ -1,20 +1,29 @@
 # GitHub Triage & Release Notes (MVP)
 
-[![CI](https://img.shields.io/github/actions/workflow/status/<you>/gh-triage-mvp/ci.yml?branch=main)](./.github/workflows/ci.yml)
-[![Contracts](https://img.shields.io/github/actions/workflow/status/<you>/gh-triage-mvp/contracts.yml?label=contracts)](./docs/openapi)
-[![Security](https://img.shields.io/github/actions/workflow/status/<you>/gh-triage-mvp/security.yml?label=security)](./.github/workflows/security.yml)
+[![Status: Alpha](https://img.shields.io/badge/status-alpha-blue)](#project-status)
+
+[![CI](https://img.shields.io/github/actions/workflow/status/mht-ashkezari/gh-triage-mvp/ci.yml?branch=main)](https://github.com/mht-ashkezari/gh-triage-mvp/actions/workflows/ci.yml)
+[![Contracts](https://img.shields.io/github/actions/workflow/status/mht-ashkezari/gh-triage-mvp/contracts.yml?label=contracts&branch=main)](https://github.com/mht-ashkezari/gh-triage-mvp/actions/workflows/contracts.yml)
+[![Runs e2e](https://img.shields.io/github/actions/workflow/status/mht-ashkezari/gh-triage-mvp/runs-integration.yml?label=runs%20e2e&branch=main)](https://github.com/mht-ashkezari/gh-triage-mvp/actions/workflows/runs-integration.yml)
+[![Security](https://img.shields.io/github/actions/workflow/status/mht-ashkezari/gh-triage-mvp/security.yml?label=security&branch=main)](https://github.com/mht-ashkezari/gh-triage-mvp/actions/workflows/security.yml)
 [![Docs](https://img.shields.io/badge/docs-private%20artifact-blue)](#4-documentation)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
-> **What**: Azure-first platform that ingests GitHub issues/PRs and produces triage suggestions + release notes with strict JSON contracts.  
+**Project status:** Alpha — under active development. Expect breaking changes.
+
+## Project status
+
+Alpha. Expect breaking changes while we land core services and contracts.
+
+> **What**: Azure-first platform that ingests GitHub issues/PRs and produces triage suggestions + release notes with strict JSON contracts.
 > **Why**: Speed up OSS & product maintenance while proving production skills (LLM/ML, MLOps, DevOps, Full-stack).
 
 ## 1) Architecture (60-second tour)
 
 - Contracts: Zod → OpenAPI/JSON Schema (`/packages/schemas`, `/packages/contracts`)  
-- Services: Next.js (frontend), NestJS (BFF, Runs, ML) (`/apps`)  
+- - Services: Next.js (frontend), **BFF (NestJS)**, **Runs (Express)**, **ML (NestJS)** (`/apps`)
 - Observability: OTel → Jaeger/App Insights  
-- **No datasets are committed**; bring-your-own data (see [Data & licensing](#6-data--licensing)).
+- **No datasets are committed**; bring-your-own data (see [Data & licensing](#7-data--licensing)).
 
 ## 2) Quick start (local dev)
 
@@ -49,13 +58,27 @@ pnpm contracts:openapi && pnpm contracts:jsonschema
 pnpm docs:bundle        # writes docs/api/* and docs/site-docs.zip
 ```
 
+## 5) How-to guides
+  
+- **Runs / Orchestrator**
+  - [Runs Orchestrator — Skeleton](./docs/howto/runs-orchestrator-skeleton.md)
+  - [CI — Runs Integration (PR-time e2e)](./docs/howto/ci-runs-integration.md)
 
-- **How-to guides:**  
-  - [GitHub App install & OAuth](./docs/howto/ghapp-github-install-oauth.md)  
+- **Contracts & Clients**
+  - [Schema-first Contracts](./docs/howto/contracts-schema-first-contracts.md)
+
+- **Repo & CI**
+  - [CI/CD Skeleton — What Runs Where](./docs/howto/cicd-ci-skeleton.md)
+  - [Monorepo Layout](./docs/howto/layout-monorepo-directory-tree.md)
+  - [Architecture Diagrams in CI](./docs/howto/arch-diagrams-ci.md)
+
+- **GH App / Webhooks**
+  - [GitHub App install & OAuth](./docs/howto/ghapp-github-install-oauth.md)
   - [ngrok webhook tunnel](./docs/howto/ngrok_webhook.md)
 
+> Full index: see **[docs/howto/](./docs/howto/README.md)**
 
-## 5) Contributing
+## 6) Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).  
 Code of Conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)  
@@ -68,7 +91,7 @@ Data & licensing register: [docs/data/LICENSES.md](./docs/data/LICENSES.md)
 pnpm new:adr "Short decision title"   # creates docs/adrs/XXXX-short-decision-title.md
 ```
 
-## 6) Data & licensing
+## 7) Data & licensing
 
 This repo **does not** ship third-party datasets. If you use external data locally or in demos:
 
@@ -78,7 +101,7 @@ This repo **does not** ship third-party datasets. If you use external data local
 
 ---
 
-## 7) Dev scripts (grab bag)
+## 8) Dev scripts (grab bag)
 
 ```bash
 # Docs hygiene
@@ -92,6 +115,6 @@ pnpm test:contracts     # schemas + contracts projects
 pnpm ci:test            # CI config (coverage, etc.)
 ```
 
-## 8) License
+## 9) License
 
 This project is licensed under **MIT** — see [`LICENSE`](./LICENSE).

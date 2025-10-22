@@ -35,7 +35,12 @@
         "Tabatabaei",
         "Ashkezari",
         "Qdrant",
-        "devpass"
+        "devpass",
+        "bullmq",
+        "DBURL",
+        "ECONNREFUSED",
+        "psql",
+        "inspectable"
     ],
     "ignorePaths": [
         "**/node_modules/**",
