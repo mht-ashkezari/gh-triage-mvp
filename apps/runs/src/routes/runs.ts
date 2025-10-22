@@ -2,8 +2,8 @@ import type { Router as RouterType } from "express";
 import { Router } from "express";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { ledger } from "../storage/ledger";
-import { enqueue } from "../queue/bullmq";
+import { ledger } from "../storage/ledger.js";
+import { enqueue } from "../queue/bullmq.js";
 
 const router: RouterType = Router();
 
@@ -17,9 +17,11 @@ router.post("/A", async (req, res, next) => {
         const run_id = randomUUID();
         await ledger.createRun({ run_id, repo_id, step: "A" });
         await ledger.emit(run_id, "enqueued", { step: "A", repo_id, since: since ?? null });
-        await enqueue({ run_id, step: "A", repo_id, since: since ?? null });
+        await enqueue("A", { run_id, repo_id, since: since ?? null });
         res.status(202).json({ run_id });
-    } catch (e) { next(e); }
+    } catch (e) {
+        next(e);
+    }
 });
 
 router.post("/B", async (req, res, next) => {
@@ -28,9 +30,11 @@ router.post("/B", async (req, res, next) => {
         const run_id = randomUUID();
         await ledger.createRun({ run_id, repo_id, step: "B" });
         await ledger.emit(run_id, "enqueued", { step: "B", repo_id });
-        await enqueue({ run_id, step: "B", repo_id });
+        await enqueue("B", { run_id, repo_id });
         res.status(202).json({ run_id });
-    } catch (e) { next(e); }
+    } catch (e) {
+        next(e);
+    }
 });
 
 router.post("/D", async (req, res, next) => {
@@ -39,9 +43,11 @@ router.post("/D", async (req, res, next) => {
         const run_id = randomUUID();
         await ledger.createRun({ run_id, repo_id, step: "D" });
         await ledger.emit(run_id, "enqueued", { step: "D", repo_id, tag: tag ?? null });
-        await enqueue({ run_id, step: "D", repo_id, tag: tag ?? null });
+        await enqueue("D", { run_id, repo_id, tag: tag ?? null });
         res.status(202).json({ run_id });
-    } catch (e) { next(e); }
+    } catch (e) {
+        next(e);
+    }
 });
 
 export default router;

@@ -1,11 +1,24 @@
-import { RunJob } from "../queue/bullmq";
-import { ledger } from "../storage/ledger";
+import { z } from "zod";
+import { ledger } from "../storage/ledger.js";
+import type { RunJob } from "../queue/bullmq.js";
+
+const PayloadA = z.object({
+    run_id: z.string().uuid(),
+    repo_id: z.string(),
+    since: z.string().nullable().optional(),
+});
 
 export async function stepA(job: RunJob) {
-    await ledger.update(job.run_id, "running");
-    await ledger.emit(job.run_id, "a_start", { repo_id: job.repo_id, since: job.since ?? null });
-    // TODO (future): GitHub fetch + persist snapshot
-    await new Promise(r => setTimeout(r, 120));
-    await ledger.emit(job.run_id, "a_done");
-    await ledger.update(job.run_id, "succeeded");
+    const data = PayloadA.parse(job.data);
+
+    await ledger.emit(data.run_id, "a_start", {
+        repo_id: data.repo_id,
+        since: data.since ?? null,
+    });
+
+    // TODO: real work here
+
+    await ledger.emit(data.run_id, "a_done", {});
+    // If you later add a helper to flip run status → succeeded:
+    // await ledger.markSucceeded?.(data.run_id);
 }

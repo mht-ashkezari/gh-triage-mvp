@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-const base = process.env.RUNS_URL ?? "http://localhost:4101";
+const base = process.env.RUNS_URL ?? `http://localhost:${process.env.RUNS_PORT ?? "4101"}`;
 
 async function post(path: string, body: any) {
     const res = await fetch(`${base}${path}`, {

@@ -1,107 +1,111 @@
 name: Runs Integration
 
 on:
-    pull_request:
-        branches: [main]
-        paths:
-            - "apps/runs/**"
-            - "infra/sql/**"
-            - ".github/workflows/runs-integration.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/runs/**"
+      - "infra/sql/**"
+      - ".github/workflows/runs-integration.yml"
 
 permissions:
-    contents: read
+  contents: read
 
 concurrency:
-    group: runs-integration-${{ github.ref }}
-    cancel-in-progress: true
+  group: runs-integration-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-    e2e:
-        runs-on: ubuntu-latest
-        timeout-minutes: 25
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
 
-        services:
-            postgres:
-                image: postgres:16
-                env:
-                    POSTGRES_USER: postgres
-                    POSTGRES_PASSWORD: postgres
-                    POSTGRES_DB: ghtriage
-                ports: ["127.0.0.1:5432:5432"]
-                options: >-
-                    --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
-                    --health-interval 5s
-                    --health-timeout 5s
-                    --health-retries 30
-            redis:
-                image: redis:7
-                ports: ["127.0.0.1:6379:6379"]
-
+    services:
+      postgres:
+        image: postgres:16
         env:
-            DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
-            REDIS_URL: redis://127.0.0.1:6379
-            RUNS_PORT: 4101
-            RUNS_CONCURRENCY: 2
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ghtriage
+        ports: ["127.0.0.1:5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d ghtriage"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
 
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+      redis:
+        image: redis:7
+        ports: ["127.0.0.1:6379:6379"]
+        # optional health check for parity with Postgres
+        options: >-
+          --health-cmd "redis-cli ping || exit 1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
 
-            # Using pnpm/action-setup keeps parity with your other workflows
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20.19.0
-                  cache: "pnpm"
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ghtriage
+      REDIS_URL: redis://127.0.0.1:6379
+      RUNS_PORT: 4101
+      RUNS_CONCURRENCY: 2
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
-              with:
-                  version: 9.12.0
-                  run_install: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: Wait for Postgres (IPv4 + credential check)
-              shell: bash
-              env:
-                  PGPASSWORD: postgres
-              run: |
-                  set -euo pipefail
-                  echo "Waiting for Postgres on 127.0.0.1:5432/ghtriage as postgres..."
-                  for i in {1..60}; do
-                    pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
-                    echo "Waiting for Postgres... ($i)"
-                    sleep 1
-                  done
-                  psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -v ON_ERROR_STOP=1 -c "select 1;"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.5
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
-            - name: Wait for Redis (TCP)
-              shell: bash
-              run: |
-                  set -euo pipefail
-                  for i in {1..60}; do
-                    (echo > /dev/tcp/127.0.0.1/6379) >/dev/null 2>&1 && { echo "Redis is ready"; break; }
-                    echo "Waiting for Redis... ($i)"
-                    sleep 1
-                  done
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+          run_install: true
 
-            - name: Apply schema (runs tables)
-              run: |
-                  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/020_runs.sql
-                  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/sql/021_run_events.sql
-                  psql "$DATABASE_URL" -c '\dt'
+      - name: Wait for Postgres (IPv4 + credential check)
+        shell: bash
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          echo "Waiting for Postgres on 127.0.0.1:5432/ghtriage as postgres..."
+          for i in {1..60}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U postgres -d ghtriage && break
+            echo "Waiting for Postgres... ($i)"
+            sleep 1
+          done
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/ghtriage" -v ON_ERROR_STOP=1 -c "select 1;"
 
-            - name: Build workspace
-              run: pnpm -w -r build
+      - name: Wait for Redis (TCP)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in {1..60}; do
+            (echo > /dev/tcp/127.0.0.1/6379) >/dev/null 2>&1 && { echo "Redis is ready"; break; }
+            echo "Waiting for Redis... ($i)"
+            sleep 1
+          done
 
-            - name: Start Runs and execute e2e
-              run: pnpm -F @ghtriage/runs test:with-server
+      # Use the same idempotent script you run locally (002 + 020 + 021)
+      - name: Apply schema (idempotent)
+        run: pnpm -w db:prepare
 
-            # Always publish server logs to aid debugging
-            - name: Upload Runs logs
-              if: always()
-              uses: actions/upload-artifact@v4
-              with:
-                  name: runs-e2e-logs
-                  path: /tmp/runs.test.log
-                  if-no-files-found: warn
+      - name: Build workspace
+        run: pnpm -w -r build
+
+      - name: Start Runs and execute e2e
+        run: pnpm -F @ghtriage/runs test:with-server
+
+      - name: Upload Runs logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runs-e2e-logs
+          path: /tmp/runs.test.log
+          if-no-files-found: warn

@@ -1,10 +1,19 @@
-import { RunJob } from "../queue/bullmq";
-import { ledger } from "../storage/ledger";
+import { z } from "zod";
+import { ledger } from "../storage/ledger.js";
+import type { RunJob } from "../queue/bullmq.js";
+
+const PayloadB = z.object({
+    run_id: z.string().uuid(),
+    repo_id: z.string(),
+});
 
 export async function stepB(job: RunJob) {
-    await ledger.update(job.run_id, "running");
-    await ledger.emit(job.run_id, "b_start", { repo_id: job.repo_id });
-    await new Promise(r => setTimeout(r, 100));
-    await ledger.emit(job.run_id, "b_done");
-    await ledger.update(job.run_id, "succeeded");
+    const data = PayloadB.parse(job.data);
+
+    await ledger.emit(data.run_id, "b_start", { repo_id: data.repo_id });
+
+    // TODO: real work here
+
+    await ledger.emit(data.run_id, "b_done", {});
+    // await ledger.markSucceeded?.(data.run_id);
 }
